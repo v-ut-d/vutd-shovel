@@ -1,0 +1,4 @@
+{
+  "*.ts": ["prettier -w", "eslint --fix"],
+  "*.json": "prettier -w"
+}
