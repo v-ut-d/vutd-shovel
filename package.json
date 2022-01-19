@@ -25,5 +25,18 @@
     "lint-staged": "lint-staged",
     "start": "node dist/index.js",
     "test": "jest"
-  }
+  },
+  "name": "vutd-shovel",
+  "description": "shovel clone for VUTD",
+  "version": "1.0.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/v-ut-d/vutd-shovel.git"
+  },
+  "keywords": [],
+  "author": "",
+  "bugs": {
+    "url": "https://github.com/v-ut-d/vutd-shovel/issues"
+  },
+  "homepage": "https://github.com/v-ut-d/vutd-shovel#readme"
 }
