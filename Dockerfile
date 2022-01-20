@@ -1,20 +1,27 @@
 FROM node AS builder
 
 WORKDIR /app
-COPY package*.json ./
+COPY package*.json tsconfig.json ./
 
 RUN npm i
 
 COPY ./src ./src
 RUN npm run build
 
-FROM node AS runner
+FROM node:alpine AS runner
 
 WORKDIR /app
 ENV NODE_ENV production
 
 COPY --from=builder app/dist ./dist
 COPY package*.json ./
-RUN npm ci --ignore-script
+
+RUN sed '/prepare/d' -i package.json
+
+RUN apk add --no-cache --virtual .gyp python3 make g++
+RUN npm ci
+RUN apk del .gyp
+
+COPY ./voice ./voice
 
 CMD ["npm", "start"]
