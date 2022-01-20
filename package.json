@@ -24,7 +24,7 @@
     "prepare": "husky install",
     "lint-staged": "lint-staged",
     "start": "node dist/index.js",
-    "test": "jest"
+    "test": "jest --passWithNoTests"
   },
   "name": "vutd-shovel",
   "description": "shovel clone for VUTD",
