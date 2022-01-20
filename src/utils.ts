@@ -1,5 +1,8 @@
 import readenv from '@cm-ayf/readenv';
 import { Base, Client } from 'discord.js';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 export const env = readenv({
   BOT_TOKEN: {},
