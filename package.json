@@ -38,5 +38,12 @@
   "bugs": {
     "url": "https://github.com/v-ut-d/vutd-shovel/issues"
   },
-  "homepage": "https://github.com/v-ut-d/vutd-shovel#readme"
+  "homepage": "https://github.com/v-ut-d/vutd-shovel#readme",
+  "dependencies": {
+    "@discordjs/opus": "^0.5.3",
+    "@discordjs/voice": "^0.7.5",
+    "discord.js": "^13.6.0",
+    "libsodium-wrappers": "^0.7.9",
+    "node-openjtalk-binding-discordjs": "^1.1.0"
+  }
 }
