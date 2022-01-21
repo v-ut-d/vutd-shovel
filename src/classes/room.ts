@@ -17,6 +17,7 @@ import {
   ThreadChannel,
   VoiceChannel,
 } from 'discord.js';
+import Preprocesser from './preprocesser';
 import Speaker from './speaker';
 
 export default class Room {
@@ -25,6 +26,7 @@ export default class Room {
   private messageCollector: MessageCollector;
   private speakers: Collection<Snowflake, Speaker> = new Collection();
   private queue: AudioResource[] = [];
+  private preprocesser: Preprocesser;
 
   constructor(
     public voiceChannel: VoiceChannel | StageChannel,
@@ -52,6 +54,8 @@ export default class Room {
 
     this.connection.subscribe(this.player);
 
+    this.preprocesser = new Preprocesser(voiceChannel.guildId);
+
     this.messageCollector = textChannel.createMessageCollector({
       filter: (message) => !message.cleanContent.startsWith(';'),
     });
@@ -63,7 +67,9 @@ export default class Room {
         this.speakers.set(message.author.id, speaker);
       }
 
-      const resource = speaker.synth(message.cleanContent);
+      const resource = speaker.synth(
+        this.preprocesser.exec(message.cleanContent)
+      );
       this.queue.push(resource);
       this.play();
     });
