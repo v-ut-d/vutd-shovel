@@ -103,5 +103,6 @@ dist
 # TernJS port file
 .tern-port
 
-#htsvoice
+# Open JTalk assets
 voice/
+dictionary/

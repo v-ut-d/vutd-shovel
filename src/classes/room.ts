@@ -67,6 +67,11 @@ export default class Room {
       this.queue.push(resource);
       this.play();
     });
+
+    process.on('SIGINT', () => {
+      this.connection.destroy();
+      process.exit(0);
+    });
   }
 
   private play() {
