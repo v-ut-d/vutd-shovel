@@ -11,6 +11,7 @@ import {
 } from '@discordjs/voice';
 import {
   Collection,
+  Guild,
   GuildTextBasedChannel,
   MessageCollector,
   Snowflake,
@@ -19,19 +20,43 @@ import {
 import Preprocesser from './preprocesser';
 import Speaker from './speaker';
 
+/**
+ * represents one reading session.
+ * exists at most 1 per {@link Guild}.
+ * has exactly one {@link VoiceBasedChannel}.
+ */
 export default class Room {
-  private connection: VoiceConnection;
-  private player: AudioPlayer;
-  private messageCollector: MessageCollector;
-  private speakers: Collection<Snowflake, Speaker> = new Collection();
-  private queue: AudioResource[] = [];
-  private preprocesser: Preprocesser;
+  /**
+   * the guild this room is in.
+   */
+  guild: Guild;
+
+  /**
+   * id of the guild this room is in.
+   */
+  guildId: Snowflake;
+
+  #connection: VoiceConnection;
+  #messageCollector: MessageCollector;
+  #queue: AudioResource[] = [];
+  #player: AudioPlayer;
+  #preprocesser: Preprocesser;
+  #speakers: Collection<Snowflake, Speaker> = new Collection();
 
   constructor(
+    /**
+     * voice channel that this room is bound to.
+     */
     public voiceChannel: VoiceBasedChannel,
+    /**
+     * text channel that this room is initialized in.
+     */
     public textChannel: GuildTextBasedChannel
   ) {
-    this.connection = joinVoiceChannel({
+    this.guild = voiceChannel.guild;
+    this.guildId = voiceChannel.guildId;
+
+    this.#connection = joinVoiceChannel({
       channelId: voiceChannel.id,
       guildId: voiceChannel.guildId,
       // needs cast: https://github.com/discordjs/discord.js/issues/7273
@@ -40,59 +65,66 @@ export default class Room {
       debug: true,
     });
 
-    this.player = new AudioPlayer({
+    this.#player = new AudioPlayer({
       behaviors: {
         noSubscriber: NoSubscriberBehavior.Stop,
       },
       debug: true,
     });
 
-    this.player.on('stateChange', (_, state) => {
+    this.#player.on('stateChange', (_, state) => {
       if (state.status === AudioPlayerStatus.Idle) this.play();
     });
 
-    this.connection.subscribe(this.player);
+    this.#connection.subscribe(this.#player);
 
-    this.preprocesser = new Preprocesser();
+    this.#preprocesser = new Preprocesser(this);
 
-    this.messageCollector = textChannel.createMessageCollector({
+    this.#messageCollector = textChannel.createMessageCollector({
       filter: (message) => !message.cleanContent.startsWith(';'),
     });
 
-    this.messageCollector.on('collect', (message) => {
-      let speaker = this.speakers.get(message.author.id);
+    this.#messageCollector.on('collect', (message) => {
+      let speaker = this.#speakers.get(message.author.id);
       if (!speaker) {
         speaker = new Speaker(message.author, true);
-        this.speakers.set(message.author.id, speaker);
+        this.#speakers.set(message.author.id, speaker);
       }
 
       const resource = speaker.synth(
-        this.preprocesser.exec(message.cleanContent)
+        this.#preprocesser.exec(message.cleanContent)
       );
-      this.queue.push(resource);
+      this.#queue.push(resource);
       this.play();
     });
 
     process.on('SIGINT', () => {
-      this.connection.destroy();
+      this.#connection.destroy();
       process.exit(0);
     });
   }
 
+  /**
+   * @returns promise that resolves when bot successfully connected
+   * and rejects when bot could connect within 2 secs.
+   */
   async ready() {
-    await entersState(this.connection, VoiceConnectionStatus.Ready, 2000);
+    await entersState(this.#connection, VoiceConnectionStatus.Ready, 2000);
     return;
   }
 
   private play() {
-    if (this.player.state.status === AudioPlayerStatus.Idle) {
-      const resource = this.queue.shift();
-      if (resource) this.player.play(resource);
+    if (this.#player.state.status === AudioPlayerStatus.Idle) {
+      const resource = this.#queue.shift();
+      if (resource) this.#player.play(resource);
     }
   }
 
+  /**
+   * disconnects from voice channel and stop collecting messages.
+   */
   destroy() {
-    this.connection.destroy();
-    this.messageCollector.stop();
+    this.#connection.destroy();
+    this.#messageCollector.stop();
   }
 }

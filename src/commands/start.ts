@@ -7,7 +7,10 @@ import rooms from '../rooms';
 import { Room } from '../classes';
 import { ErrorMessageEmbed, StartMessageEmbed } from '../components';
 
-const data: ApplicationCommandData = {
+/**
+ * `/start` command data.
+ */
+export const data: ApplicationCommandData = {
   name: 'start',
   description: '読み上げを開始します。',
   options: [
@@ -21,9 +24,15 @@ const data: ApplicationCommandData = {
   ],
 };
 
-const permissions: ApplicationCommandPermissions[] = [];
+/**
+ * `/start` command permission data.
+ */
+export const permissions: ApplicationCommandPermissions[] = [];
 
-async function handle(interaction: CommandInteraction<'cached'>) {
+/**
+ * handles `/start` command.
+ */
+export async function handle(interaction: CommandInteraction<'cached'>) {
   try {
     const voiceChannel =
       interaction.member.voice.channel ?? interaction.options.getChannel('vc');
@@ -54,6 +63,3 @@ async function handle(interaction: CommandInteraction<'cached'>) {
     });
   }
 }
-
-const start = { ...data, permissions, handle };
-export default start;

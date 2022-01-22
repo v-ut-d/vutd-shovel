@@ -6,14 +6,23 @@ import {
 import rooms from '../rooms';
 import { EndMessageEmbed, ErrorMessageEmbed } from '../components';
 
-const data: ApplicationCommandData = {
+/**
+ * `/end` command data.
+ */
+export const data: ApplicationCommandData = {
   name: 'start',
   description: '読み上げを終了します。',
 };
 
-const permissions: ApplicationCommandPermissions[] = [];
+/**
+ * `/end` command permission data.
+ */
+export const permissions: ApplicationCommandPermissions[] = [];
 
-async function handle(interaction: CommandInteraction<'cached'>) {
+/**
+ * handles `/end` command.
+ */
+export async function handle(interaction: CommandInteraction<'cached'>) {
   try {
     const room = rooms.get(interaction.guildId);
     if (!room) throw new Error('現在読み上げ中ではありません。');
@@ -33,6 +42,3 @@ async function handle(interaction: CommandInteraction<'cached'>) {
     });
   }
 }
-
-const end = { ...data, permissions, handle };
-export default end;

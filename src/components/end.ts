@@ -1,6 +1,9 @@
 import { Room } from '../classes';
 import BaseMessageEmbed from './base';
 
+/**
+ * embed sent when the bot ends reading.
+ */
 export default class EndMessageEmbed extends BaseMessageEmbed {
   constructor(room: Room) {
     super({

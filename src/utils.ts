@@ -1,10 +1,14 @@
 import readenv from '@cm-ayf/readenv';
-import { Base, Client } from 'discord.js';
-import dotenv from 'dotenv';
+import { Base, Client, Guild } from 'discord.js';
 import Room from './classes/room';
 
-dotenv.config();
+if (process.env.NODE_ENV !== 'production')
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  require('dotenv').config();
 
+/**
+ * environment variables that are in use; always load from here
+ */
 export const env = readenv({
   BOT_TOKEN: {},
   GUILD_ID: {},
@@ -17,15 +21,23 @@ export const env = readenv({
   },
 });
 
-export function getClient(base: Base | Client) {
+function getClient(base: Base | Client) {
   return 'client' in base ? base.client : base;
 }
 
-export async function getGuild(base: Base | Client) {
+/**
+ * gets {@link Guild} with env.GUILD_ID.
+ * @param base almost any discord.js class fits here.
+ */
+export async function getGuild(base: Base | Client): Promise<Guild> {
   return getClient(base).guilds.fetch(env.GUILD_ID);
 }
 
-export async function getDebugRoom(base: Base | Client) {
+/**
+ * gets {@link Room} from env.DEBUG_TC_ID and env.DEBUG_VC_ID.
+ * @param base almost any discord.js class fits here.
+ */
+export async function getDebugRoom(base: Base | Client): Promise<Room> {
   const guild = await getGuild(base);
   const voice = env.DEBUG_VC_ID
     ? await guild.channels.fetch(env.DEBUG_VC_ID)

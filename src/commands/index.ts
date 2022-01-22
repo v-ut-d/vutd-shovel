@@ -1,13 +1,18 @@
 import { Client, CommandInteraction } from 'discord.js';
 import { getGuild } from '../utils';
-import end from './end';
-import start from './start';
+import * as end from './end';
+import * as start from './start';
 
+/**
+ * registers slash commands.
+ */
 export async function register(client: Client<true>) {
   const guild = await getGuild(client);
   await Promise.all(
     [start, end].map((e) =>
-      guild.commands.create(e).then((command) => command.permissions.add(e))
+      guild.commands
+        .create(e.data)
+        .then((command) => command.permissions.add(e))
     )
   );
   console.log('command initialized.');
@@ -17,6 +22,9 @@ export async function register(client: Client<true>) {
   });
 }
 
+/**
+ * handles any slash command ({@link CommandInteraction}).
+ */
 export async function handle(interaction: CommandInteraction<'cached'>) {
   switch (interaction.commandId) {
     case 'start':
