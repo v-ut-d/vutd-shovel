@@ -1,10 +1,7 @@
-import { Client, Collection, CommandInteraction, Snowflake } from 'discord.js';
-import { Room } from '../classes';
+import { Client, CommandInteraction } from 'discord.js';
 import { getGuild } from '../utils';
 import end from './end';
 import start from './start';
-
-export const rooms = new Collection<Snowflake, Room>();
 
 export async function register(client: Client<true>) {
   const guild = await getGuild(client);

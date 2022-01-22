@@ -3,7 +3,7 @@ import {
   ApplicationCommandPermissions,
   CommandInteraction,
 } from 'discord.js';
-import { rooms } from '.';
+import rooms from '../rooms';
 import { Room } from '../classes';
 import { ErrorMessageEmbed, StartMessageEmbed } from '../components';
 
