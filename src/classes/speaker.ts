@@ -8,7 +8,7 @@ import {
   synthesis,
 } from 'node-openjtalk-binding-discordjs';
 
-const voiceDir = path.join(__dirname, 'voice');
+const voiceDir = './voice';
 
 interface LocalOpenJTalkOptions extends OpenJTalkOptions {
   htsvoice: string;
