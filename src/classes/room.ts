@@ -73,7 +73,7 @@ export default class Room {
     });
 
     this.#player.on('stateChange', (_, state) => {
-      if (state.status === AudioPlayerStatus.Idle) this.play();
+      if (state.status === AudioPlayerStatus.Idle) this.#play();
     });
 
     this.#connection.subscribe(this.#player);
@@ -95,7 +95,7 @@ export default class Room {
         this.#preprocesser.exec(message.cleanContent)
       );
       this.#queue.push(resource);
-      this.play();
+      this.#play();
     });
 
     process.on('SIGINT', () => {
@@ -113,7 +113,7 @@ export default class Room {
     return;
   }
 
-  private play() {
+  #play() {
     if (this.#player.state.status === AudioPlayerStatus.Idle) {
       const resource = this.#queue.shift();
       if (resource) this.#player.play(resource);
