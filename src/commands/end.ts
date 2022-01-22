@@ -10,7 +10,7 @@ import { EndMessageEmbed, ErrorMessageEmbed } from '../components';
  * `/end` command data.
  */
 export const data: ApplicationCommandData = {
-  name: 'start',
+  name: 'end',
   description: '読み上げを終了します。',
 };
 

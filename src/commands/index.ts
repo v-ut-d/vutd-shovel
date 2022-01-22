@@ -26,7 +26,7 @@ export async function register(client: Client<true>) {
  * handles any slash command ({@link CommandInteraction}).
  */
 export async function handle(interaction: CommandInteraction<'cached'>) {
-  switch (interaction.commandId) {
+  switch (interaction.commandName) {
     case 'start':
       return start.handle(interaction);
     case 'end':
