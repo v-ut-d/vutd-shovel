@@ -3,19 +3,18 @@ import {
   AudioPlayerStatus,
   AudioResource,
   DiscordGatewayAdapterCreator,
+  entersState,
   joinVoiceChannel,
   NoSubscriberBehavior,
   VoiceConnection,
+  VoiceConnectionStatus,
 } from '@discordjs/voice';
 import {
   Collection,
+  GuildTextBasedChannel,
   MessageCollector,
-  NewsChannel,
   Snowflake,
-  StageChannel,
-  TextChannel,
-  ThreadChannel,
-  VoiceChannel,
+  VoiceBasedChannel,
 } from 'discord.js';
 import Preprocesser from './preprocesser';
 import Speaker from './speaker';
@@ -29,8 +28,8 @@ export default class Room {
   private preprocesser: Preprocesser;
 
   constructor(
-    public voiceChannel: VoiceChannel | StageChannel,
-    public textChannel: TextChannel | NewsChannel | ThreadChannel
+    public voiceChannel: VoiceBasedChannel,
+    public textChannel: GuildTextBasedChannel
   ) {
     this.connection = joinVoiceChannel({
       channelId: voiceChannel.id,
@@ -78,6 +77,11 @@ export default class Room {
       this.connection.destroy();
       process.exit(0);
     });
+  }
+
+  async ready() {
+    await entersState(this.connection, VoiceConnectionStatus.Ready, 2000);
+    return;
   }
 
   private play() {
