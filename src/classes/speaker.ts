@@ -13,7 +13,6 @@ export default class Speaker {
     const stream = silenceOnError(
       synthesis(content, {
         htsvoice: this.htsvoice,
-        dictionary: 'dictionary',
       }),
       this.debug ? (e) => console.error(e) : undefined
     );

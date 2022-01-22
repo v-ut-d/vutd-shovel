@@ -54,7 +54,7 @@ export default class Room {
 
     this.connection.subscribe(this.player);
 
-    this.preprocesser = new Preprocesser(voiceChannel.guildId);
+    this.preprocesser = new Preprocesser();
 
     this.messageCollector = textChannel.createMessageCollector({
       filter: (message) => !message.cleanContent.startsWith(';'),
