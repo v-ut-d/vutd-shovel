@@ -17,7 +17,10 @@ interface LocalOpenJTalkOptions extends OpenJTalkOptions {
   weight_of_GV_for_log_F0: number;
 }
 
-interface Options {
+/**
+ * options for speaker; wrapper of {@link OpenJTalkOptions}.
+ */
+export interface SpeakerOptions {
   tone: number;
   speed: number;
   f0: number;
@@ -82,7 +85,7 @@ export default class Speaker {
   /**
    * options passed to Open JTalk
    */
-  get options(): Options {
+  get options(): SpeakerOptions {
     return {
       tone: this.#options.additional_half_tone,
       speed: this.#options.speech_speed_rate,
@@ -94,7 +97,7 @@ export default class Speaker {
   /**
    * set options passed to Open JTalk
    */
-  set options(options: Partial<Options>) {
+  set options(options: Partial<SpeakerOptions>) {
     const validated: Partial<LocalOpenJTalkOptions> = {};
     if (options.tone && Math.abs(options.tone) <= 12)
       validated.additional_half_tone = options.tone;

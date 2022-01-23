@@ -104,5 +104,4 @@ dist
 .tern-port
 
 # Open JTalk assets
-voice/
-dictionary/
+/voice

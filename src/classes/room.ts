@@ -15,6 +15,7 @@ import {
   GuildTextBasedChannel,
   MessageCollector,
   Snowflake,
+  User,
   VoiceBasedChannel,
 } from 'discord.js';
 import Preprocesser from './preprocesser';
@@ -81,7 +82,8 @@ export default class Room {
     this.#preprocesser = new Preprocesser(this);
 
     this.#messageCollector = textChannel.createMessageCollector({
-      filter: (message) => !message.cleanContent.startsWith(';'),
+      filter: (message) =>
+        message.cleanContent !== '' && !message.cleanContent.startsWith(';'),
     });
 
     this.#messageCollector.on('collect', (message) => {
@@ -111,6 +113,19 @@ export default class Room {
   async ready() {
     await entersState(this.#connection, VoiceConnectionStatus.Ready, 2000);
     return;
+  }
+
+  getSpeaker(userId: Snowflake) {
+    return this.#speakers.get(userId);
+  }
+
+  getOrCreateSpeaker(user: User) {
+    let speaker = this.getSpeaker(user.id);
+    if (!speaker) {
+      speaker = new Speaker(user, true);
+      this.#speakers.set(user.id, speaker);
+    }
+    return speaker;
   }
 
   #play() {

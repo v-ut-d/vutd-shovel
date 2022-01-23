@@ -28,6 +28,7 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
     if (!room) throw new Error('現在読み上げ中ではありません。');
 
     room.destroy();
+    rooms.delete(interaction.guildId);
     await interaction.reply({
       embeds: [new EndMessageEmbed(room)],
     });

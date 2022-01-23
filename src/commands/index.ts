@@ -2,6 +2,7 @@ import { Client, CommandInteraction } from 'discord.js';
 import { getGuild } from '../utils';
 import * as end from './end';
 import * as start from './start';
+import * as voice from './voice';
 
 /**
  * registers slash commands.
@@ -9,7 +10,7 @@ import * as start from './start';
 export async function register(client: Client<true>) {
   const guild = await getGuild(client);
   await Promise.all(
-    [start, end].map((e) =>
+    [start, end, voice].map((e) =>
       guild.commands
         .create(e.data)
         .then((command) => command.permissions.add(e))
@@ -31,5 +32,7 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
       return start.handle(interaction);
     case 'end':
       return end.handle(interaction);
+    case 'voice':
+      return voice.handle(interaction);
   }
 }
