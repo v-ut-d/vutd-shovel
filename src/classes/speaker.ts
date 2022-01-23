@@ -17,6 +17,14 @@ interface LocalOpenJTalkOptions extends OpenJTalkOptions {
   weight_of_GV_for_log_F0: number;
 }
 
+function inRange(
+  left: number,
+  target: number | undefined,
+  right: number
+): target is number {
+  return target !== undefined && left <= target && target <= right;
+}
+
 /**
  * options for speaker; wrapper of {@link OpenJTalkOptions}.
  */
@@ -50,8 +58,8 @@ export default class Speaker {
       const [i, j, k, l] = match.slice(1).map((str) => parseInt(str));
       return {
         htsvoice: Speaker.htsvoices[i % Speaker.htsvoices.length],
-        speech_speed_rate: Math.pow(2, j / 50 - 1),
-        additional_half_tone: k / 15 - 3,
+        speech_speed_rate: Math.pow(2, j / 33 - 1),
+        additional_half_tone: k / 15,
         weight_of_GV_for_log_F0: Math.pow(2, l / 25 - 2),
       };
     } catch (_) {
@@ -60,8 +68,8 @@ export default class Speaker {
           Speaker.htsvoices[
             Math.floor(Math.random() * Speaker.htsvoices.length)
           ],
-        speech_speed_rate: Math.pow(2, Math.random() * 2 - 1),
-        additional_half_tone: Math.random() * 6 - 3,
+        speech_speed_rate: Math.pow(2, Math.random() * 3 - 1),
+        additional_half_tone: Math.random() * 6,
         weight_of_GV_for_log_F0: Math.pow(2, Math.random() * 4 - 2),
       };
     }
@@ -98,19 +106,14 @@ export default class Speaker {
    * set options passed to Open JTalk
    */
   set options(options: Partial<SpeakerOptions>) {
-    const validated: Partial<LocalOpenJTalkOptions> = {};
-    if (options.tone && Math.abs(options.tone) <= 12)
-      validated.additional_half_tone = options.tone;
-    if (options.speed && options.speed >= 0.5 && options.speed <= 2)
-      validated.speech_speed_rate = options.speed;
-    if (options.f0 && options.f0 >= 0.25 && options.f0 <= 4)
-      validated.weight_of_GV_for_log_F0 = options.f0;
+    if (inRange(0, options.tone, 6))
+      this.#options.additional_half_tone = options.tone;
+    if (inRange(0.5, options.speed, 4))
+      this.#options.speech_speed_rate = options.speed;
+    if (inRange(0.25, options.f0, 4))
+      this.#options.weight_of_GV_for_log_F0 = options.f0;
     if (options.htsvoice && Speaker.htsvoices.includes(options.htsvoice))
-      validated.htsvoice = options.htsvoice;
-    this.#options = {
-      ...this.#options,
-      ...validated,
-    };
+      this.#options.htsvoice = options.htsvoice;
   }
 
   /**
@@ -126,7 +129,7 @@ export default class Speaker {
   synth(content: string) {
     const stream = silenceOnError(
       synthesis(content, this.#options),
-      this.debug ? (e) => console.error(e) : undefined
+      this.debug ? console.error : undefined
     );
     return createAudioResource(stream, {
       inputType: StreamType.Raw,

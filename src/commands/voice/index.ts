@@ -5,6 +5,7 @@ import {
 } from 'discord.js';
 import * as get from './get';
 import * as random from './random';
+import * as set from './set';
 
 /**
  * `/voice` command data.
@@ -12,7 +13,7 @@ import * as random from './random';
 export const data: ApplicationCommandData = {
   name: 'voice',
   description: '自分の読み上げ設定に関するコマンド群です。',
-  options: [get.data, random.data],
+  options: [get.data, random.data, set.data],
 };
 
 /**
@@ -28,9 +29,9 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
   switch (subcommand) {
     case 'get':
       return get.handle(interaction);
-    case 'set':
-      return;
     case 'random':
       return random.handle(interaction);
+    case 'set':
+      return set.handle(interaction);
   }
 }
