@@ -11,6 +11,8 @@ export default class Preprocesser {
    * preprocesses the string.
    */
   exec(content: string): string {
-    return content;
+    let _content = content;
+    _content = _content.replace(/https?:\/\/[-_.!~*\'()a-zA-Z0-9;\/?:\@&=+\$,%#]+/g, "URL省略");
+    return _content;
   }
 }
