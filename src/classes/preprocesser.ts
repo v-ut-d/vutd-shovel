@@ -11,6 +11,9 @@ export default class Preprocesser {
    * preprocesses the string.
    */
   exec(content: string): string {
-    return content;
+    return content.replace(
+      /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/,
+      'URL省略\n'
+    );
   }
 }
