@@ -26,8 +26,7 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
     const room = rooms.get(interaction.guildId);
     if (!room) throw new Error('現在読み上げ中ではありません。');
 
-    room.destroy();
-    rooms.delete(interaction.guildId);
+    room.cancel();
     await interaction.reply({
       content: '読み上げを中断しました。',
       ephemeral: true,
