@@ -11,8 +11,10 @@ export default class Preprocesser {
    * preprocesses the string.
    */
   exec(content: string): string {
-    let _content = content;
-    _content = _content.replace(/https?:\/\/[-_.!~*\'()a-zA-Z0-9;\/?:\@&=+\$,%#]+/g, "URL省略");
-    return _content;
+    return content.replace(/<:(.+?):\d{18}>/, ':$1:').replace(
+      // eslint-disable-next-line no-irregular-whitespace
+      /https?:\/\/[-_.!~*\'()a-zA-Z0-9;\/?:\@&=+\$,%#]+/g,
+      'URL省略\n'
+    );
   }
 }
