@@ -135,6 +135,10 @@ export default class Room {
     }
   }
 
+  cancel() {
+    this.#player.stop(true);
+  }
+
   /**
    * disconnects from voice channel and stop collecting messages.
    */
