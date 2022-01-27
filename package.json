@@ -44,7 +44,7 @@
     "@discordjs/opus": "^0.7.0",
     "@discordjs/voice": "^0.8.0",
     "discord.js": "^13.6.0",
-    "dotenv": "^14.3.0",
+    "dotenv": "^14.3.2",
     "libsodium-wrappers": "^0.7.9",
     "node-openjtalk-binding": "git+https://github.com/tignear/node-openjtalk-binding.git#v1.2.0",
     "node-openjtalk-binding-discordjs": "^1.1.0"

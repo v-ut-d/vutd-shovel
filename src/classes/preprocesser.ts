@@ -13,7 +13,7 @@ export default class Preprocesser {
   exec(content: string): string {
     return content.replace(/<:(.+?):\d{18}>/, ':$1:').replace(
       // eslint-disable-next-line no-irregular-whitespace
-      /https?:\/\/[^\s　]+?/,
+      /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}(\/[^\s　]*)?/g,
       'URL省略\n'
     );
   }
