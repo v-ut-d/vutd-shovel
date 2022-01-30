@@ -35,7 +35,7 @@ export const permissions: ApplicationCommandPermissions[] = [];
 export async function handle(interaction: CommandInteraction<'cached'>) {
   try {
     const voiceChannel =
-      interaction.member.voice.channel ?? interaction.options.getChannel('vc');
+      interaction.options.getChannel('vc') ?? interaction.member.voice.channel;
     if (!voiceChannel?.isVoice())
       throw new Error('ボイスチャンネルを指定してください。');
 
@@ -43,13 +43,25 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
     if (!textChannel)
       throw new Error('テキストチャンネルを取得できませんでした。');
 
+    const me = interaction.guild.me;
+    if (!me) throw new Error('データを取得できませんでした。');
+
     const room = new Room(voiceChannel, textChannel);
     await room.ready().catch(() => {
       room.destroy();
       throw new Error('ボイスチャンネルへの接続時にエラーが発生しました。');
     });
+
+    const surpressed =
+      voiceChannel.type === 'GUILD_STAGE_VOICE' &&
+      me.voice.suppress &&
+      (await me.voice.setSuppressed(false).then(
+        () => false,
+        () => true
+      ));
+
     await interaction.reply({
-      embeds: [new StartMessageEmbed(room)],
+      embeds: [new StartMessageEmbed(room, surpressed)],
     });
     rooms.set(interaction.guildId, room);
   } catch (e) {
