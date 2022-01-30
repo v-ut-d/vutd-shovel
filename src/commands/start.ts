@@ -66,12 +66,7 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
     rooms.set(interaction.guildId, room);
   } catch (e) {
     await interaction.reply({
-      embeds: [
-        new ErrorMessageEmbed(
-          '読み上げを開始できませんでした。',
-          (e as Error).message
-        ),
-      ],
+      embeds: [new ErrorMessageEmbed('読み上げを開始できませんでした。', e)],
     });
   }
 }

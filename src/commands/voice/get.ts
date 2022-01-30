@@ -29,7 +29,7 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
     });
   } catch (e) {
     await interaction.reply({
-      embeds: [new ErrorMessageEmbed('読み上げ設定', (e as Error).message)],
+      embeds: [new ErrorMessageEmbed('読み上げ設定', e)],
     });
   }
 }

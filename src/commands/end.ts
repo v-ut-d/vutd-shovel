@@ -34,12 +34,7 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
     });
   } catch (e) {
     await interaction.reply({
-      embeds: [
-        new ErrorMessageEmbed(
-          '読み上げを終了できませんでした。',
-          (e as Error).message
-        ),
-      ],
+      embeds: [new ErrorMessageEmbed('読み上げを終了できませんでした。', e)],
     });
   }
 }
