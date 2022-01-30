@@ -101,7 +101,8 @@ export default class Room {
     });
 
     process.on('SIGINT', () => {
-      this.#connection.destroy();
+      if (this.#connection.state.status !== VoiceConnectionStatus.Destroyed)
+        this.#connection.destroy();
       process.exit(0);
     });
   }
