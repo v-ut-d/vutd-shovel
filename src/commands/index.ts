@@ -1,4 +1,4 @@
-import { Client, CommandInteraction } from 'discord.js';
+import type { Client, CommandInteraction } from 'discord.js';
 import { getGuild } from '../utils';
 import * as cancel from './cancel';
 import * as end from './end';

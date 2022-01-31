@@ -23,6 +23,7 @@
 
     /* Type Checking */
     "strict": true,
+    "importsNotUsedAsValues": "error",
 
     /* Completeness */
     "skipLibCheck": true

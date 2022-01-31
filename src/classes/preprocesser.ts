@@ -1,5 +1,5 @@
 import { normalizeDiacritics } from 'normalize-text';
-import { Room } from '.';
+import type { Room } from '.';
 import alkana from '../../data/alkana.json';
 import emoji from '../../data/emoji.json';
 

@@ -1,5 +1,5 @@
 import path from 'path';
-import { SpeakerOptions } from '../classes';
+import type { SpeakerOptions } from '../classes';
 import BaseMessageEmbed from './base';
 
 /**

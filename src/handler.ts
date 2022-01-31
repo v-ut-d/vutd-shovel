@@ -1,4 +1,4 @@
-import { Client, Interaction } from 'discord.js';
+import type { Client, Interaction } from 'discord.js';
 import * as commands from './commands';
 
 /**

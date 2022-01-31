@@ -1,5 +1,5 @@
 import readenv from '@cm-ayf/readenv';
-import { Base, Client, Guild } from 'discord.js';
+import type { Base, Client, Guild } from 'discord.js';
 import Room from './classes/room';
 
 if (process.env.NODE_ENV !== 'production')

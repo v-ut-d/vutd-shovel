@@ -1,4 +1,4 @@
-import {
+import type {
   ApplicationCommandSubCommandData,
   CommandInteraction,
 } from 'discord.js';

@@ -1,4 +1,4 @@
-import { Room } from '../classes';
+import type { Room } from '../classes';
 import BaseMessageEmbed from './base';
 
 /**

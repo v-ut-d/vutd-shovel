@@ -1,5 +1,5 @@
 import { createAudioResource, StreamType } from '@discordjs/voice';
-import { Snowflake, User } from 'discord.js';
+import type { Snowflake, User } from 'discord.js';
 import { readdirSync } from 'fs';
 import path from 'path';
 import {
