@@ -2,8 +2,7 @@ import type {
   ApplicationCommandSubCommandData,
   CommandInteraction,
 } from 'discord.js';
-import { ErrorMessageEmbed } from '../../components';
-import VoiceMessageEmbed from '../../components/voice';
+import { ErrorMessageEmbed, VoiceMessageEmbed } from '../../components';
 import rooms from '../../rooms';
 
 /**

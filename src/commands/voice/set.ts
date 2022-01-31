@@ -4,8 +4,7 @@ import type {
 } from 'discord.js';
 import path from 'path';
 import { Speaker } from '../../classes';
-import { ErrorMessageEmbed } from '../../components';
-import VoiceMessageEmbed from '../../components/voice';
+import { ErrorMessageEmbed, VoiceMessageEmbed } from '../../components';
 import rooms from '../../rooms';
 
 /**

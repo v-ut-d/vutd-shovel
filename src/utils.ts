@@ -1,6 +1,6 @@
 import readenv from '@cm-ayf/readenv';
 import type { Base, Client, Guild } from 'discord.js';
-import Room from './classes/room';
+import { Room } from './classes';
 
 if (process.env.NODE_ENV !== 'production')
   // eslint-disable-next-line @typescript-eslint/no-var-requires

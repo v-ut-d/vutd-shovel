@@ -18,8 +18,7 @@ import {
   User,
   VoiceBasedChannel,
 } from 'discord.js';
-import Preprocesser from './preprocesser';
-import Speaker from './speaker';
+import { Preprocesser, Speaker } from '.';
 
 /**
  * represents one reading session.
