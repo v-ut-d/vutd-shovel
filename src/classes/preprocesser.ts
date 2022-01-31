@@ -1,7 +1,7 @@
 import { normalizeDiacritics } from 'normalize-text';
 import { Room } from '.';
-import alkana from '../../alkana.json';
-import emoji from '../../emoji.json';
+import alkana from '../../data/alkana.json';
+import emoji from '../../data/emoji.json';
 
 const TO_BE_ESCAPED = '\\*+.?{}()[]^$-|/';
 
