@@ -31,6 +31,11 @@ const URL_REPLACER = [
   'URL省略\n',
 ] as const;
 
+const WARA_REPLACER = [
+  /[^a-z](w+)/gi,
+  (_: unknown, str: string) => (str.length > 1 ? 'わらわら' : 'わら'),
+] as const;
+
 /**
  * Preprocesser that is used before Open JTalk synthesizes voice.
  * one will be created when {@link Room}
@@ -46,6 +51,7 @@ export default class Preprocesser {
       .replace(...GUILD_EMOJI_REPLACER)
       .replace(...ENGLISH_WORD_REPLACER)
       .replace(...UNICODE_EMOJI_REPLACER)
-      .replace(...URL_REPLACER);
+      .replace(...URL_REPLACER)
+      .replace(...WARA_REPLACER);
   }
 }
