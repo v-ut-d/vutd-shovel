@@ -1,3 +1,4 @@
+import { normalizeDiacritics } from 'normalize-text';
 import { Room } from '.';
 
 /**
@@ -11,10 +12,12 @@ export default class Preprocesser {
    * preprocesses the string.
    */
   exec(content: string): string {
-    return content.replace(/<:(.+?):\d{18}>/g, ':$1:').replace(
-      // eslint-disable-next-line no-irregular-whitespace
-      /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}(\/[^\s　]*)?/g,
-      'URL省略\n'
-    );
+    return normalizeDiacritics(content)
+      .replace(/<:(.+?):\d{18}>/g, ':$1:')
+      .replace(
+        // eslint-disable-next-line no-irregular-whitespace
+        /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}(\/[^\s　]*)?/g,
+        'URL省略\n'
+      );
   }
 }
