@@ -1,4 +1,3 @@
-import { normalizeDiacritics } from 'normalize-text';
 import type { Room } from '.';
 import alkana from '../../data/alkana.json';
 import emoji from '../../data/emoji.json';
@@ -47,7 +46,7 @@ export default class Preprocesser {
    * preprocesses the string.
    */
   exec(content: string): string {
-    return normalizeDiacritics(content)
+    return content
       .replace(...GUILD_EMOJI_REPLACER)
       .replace(...ENGLISH_WORD_REPLACER)
       .replace(...UNICODE_EMOJI_REPLACER)

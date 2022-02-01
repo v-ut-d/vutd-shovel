@@ -47,7 +47,6 @@
     "dotenv": "^15.0.0",
     "libsodium-wrappers": "^0.7.9",
     "node-openjtalk-binding": "git+https://github.com/tignear/node-openjtalk-binding.git#v1.2.0",
-    "node-openjtalk-binding-discordjs": "^1.1.0",
-    "normalize-text": "^2.3.3"
+    "node-openjtalk-binding-discordjs": "^1.1.0"
   }
 }
