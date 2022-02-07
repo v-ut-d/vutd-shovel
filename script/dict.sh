@@ -1,8 +1,9 @@
 #!/bin/sh
 
-mkdir -p dictionary/tmp
+mkdir -p dictionary
 cd dictionary
 rm -r ./*
+mkdir -p tmp
 cd tmp
 
 cp -r ../../node_modules/node-openjtalk-binding/openjtalk/mecab-naist-jdic/* ./
