@@ -1,0 +1,24 @@
+{
+  // IntelliSense を使用して利用可能な属性を学べます。
+  // 既存の属性の説明をホバーして表示します。
+  // 詳細情報は次を確認してください: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "name": "dev:watch",
+      "program": "${workspaceFolder}\\src\\index.ts",
+      "cwd": "${workspaceRoot}/",
+      "request": "launch",
+      "restart": true,
+      "runtimeExecutable": "npm",
+      "skipFiles": ["<node_internals>/**"],
+      "type": "pwa-node",
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "runtimeArgs": ["run", "dev:watch"]
+    }
+  ]
+}
