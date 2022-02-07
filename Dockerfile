@@ -1,7 +1,7 @@
 FROM node AS builder
 
 WORKDIR /app
-COPY package*.json tsconfig.json ./
+COPY package*.json tsconfig.json script ./
 
 RUN npm i
 
