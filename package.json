@@ -24,7 +24,8 @@
     "prepare": "husky install",
     "lint-staged": "lint-staged",
     "start": "node dist/index.js",
-    "test": "jest --passWithNoTests"
+    "test": "jest --passWithNoTests",
+    "postinstall": "bash script/dict.sh"
   },
   "name": "vutd-shovel",
   "description": "shovel clone for VUTD",
@@ -46,7 +47,7 @@
     "discord.js": "^13.6.0",
     "dotenv": "^16.0.0",
     "libsodium-wrappers": "^0.7.9",
-    "node-openjtalk-binding": "git+https://github.com/v-ut-d/node-openjtalk-binding.git",
+    "node-openjtalk-binding": "git+https://github.com/v-ut-d/node-openjtalk-binding.git#femshima/mecab-dict-index",
     "node-openjtalk-binding-discordjs": "^1.1.0"
   }
 }

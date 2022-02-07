@@ -128,7 +128,10 @@ export default class Speaker {
    */
   synth(content: string) {
     const stream = silenceOnError(
-      synthesis(content, this.#options),
+      synthesis(content, {
+        dictionary: './dictionary',
+        ...this.#options,
+      }),
       this.debug ? console.error : undefined
     );
     return createAudioResource(stream, {
