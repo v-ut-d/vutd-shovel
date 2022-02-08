@@ -18,7 +18,7 @@ import {
   User,
   VoiceBasedChannel,
 } from 'discord.js';
-import { Preprocesser, Speaker } from '.';
+import { Preprocessor, Speaker } from '.';
 
 /**
  * represents one reading session.
@@ -40,7 +40,7 @@ export default class Room {
   #messageCollector: MessageCollector;
   #queue: AudioResource[] = [];
   #player: AudioPlayer;
-  #preprocesser: Preprocesser;
+  #preprocessor: Preprocessor;
   #speakers: Collection<Snowflake, Speaker> = new Collection();
 
   constructor(
@@ -78,7 +78,7 @@ export default class Room {
 
     this.#connection.subscribe(this.#player);
 
-    this.#preprocesser = new Preprocesser(this);
+    this.#preprocessor = new Preprocessor(this);
 
     this.#messageCollector = textChannel.createMessageCollector({
       filter: (message) =>
@@ -93,7 +93,7 @@ export default class Room {
       }
 
       const resource = speaker.synth(
-        this.#preprocesser.exec(message.cleanContent)
+        this.#preprocessor.exec(message.cleanContent)
       );
       this.#queue.push(resource);
       this.#play();

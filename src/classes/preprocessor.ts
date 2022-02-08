@@ -38,7 +38,7 @@ const WARA_REPLACER = [
 const OMIT_REPLACER = [/(^.{100}).+$/, '$1\n以下略'] as const;
 
 /**
- * Preprocesser that is used before Open JTalk synthesizes voice.
+ * Preprocessor that is used before Open JTalk synthesizes voice.
  * one will be created when {@link Room}
  */
 export default class Preprocessor {
