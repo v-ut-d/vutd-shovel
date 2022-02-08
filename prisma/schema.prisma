@@ -1,0 +1,24 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String @id @db.VarChar(18)
+  tone     Int
+  speed    Int
+  f0       Int
+  htsvoice String
+}
+
+model Emoji {
+  id             String @id @db.VarChar(18)
+  pronounciation String
+}
