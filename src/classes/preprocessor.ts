@@ -35,7 +35,7 @@ const WARA_REPLACER = [
   (str: string) => (str.length > 1 ? 'わらわら' : 'わら'),
 ] as const;
 
-const OMIT_REPLACER = [/(^.{100}).+$/, '$1\n以下略'] as const;
+const OMIT_REPLACER = [/^(.{100}).+$/s, '$1\n以下略'] as const;
 
 /**
  * Preprocessor that is used before Open JTalk synthesizes voice.

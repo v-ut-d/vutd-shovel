@@ -85,8 +85,8 @@ describe('Test Preprocessor', () => {
     expect(preprocessor.exec(url + pillow.substring(0, 93))).toBe(
       'URL省略\n ' + pillow.substring(0, 93)
     );
-    // expect(preprocessor.exec(url + pillow.substring(0, 94))).toBe(
-    //   'URL省略\n ' + pillow.substring(0, 93) + '\n以下略'
-    // );
+    expect(preprocessor.exec(url + pillow.substring(0, 94))).toBe(
+      'URL省略\n ' + pillow.substring(0, 93) + '\n以下略'
+    );
   });
 });
