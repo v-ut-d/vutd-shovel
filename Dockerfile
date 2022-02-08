@@ -1,11 +1,12 @@
 FROM node AS builder
 
 WORKDIR /app
-COPY package*.json tsconfig.json script ./
+COPY ./package*.json ./tsconfig.json ./
 
-RUN npm i
+RUN npm i --ignore-scripts
 
 COPY ./src ./src
+COPY ./data ./data
 RUN npm run build
 
 FROM node:alpine AS runner
@@ -13,8 +14,9 @@ FROM node:alpine AS runner
 WORKDIR /app
 ENV NODE_ENV production
 
-COPY --from=builder app/dist ./dist
-COPY package*.json ./
+COPY --from=builder /app/dist ./dist
+COPY ./script ./script
+COPY ./package*.json ./
 
 RUN sed '/prepare/d' -i package.json
 

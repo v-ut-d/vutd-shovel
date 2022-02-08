@@ -25,7 +25,7 @@
     "lint-staged": "lint-staged",
     "start": "node dist/index.js",
     "test": "jest --passWithNoTests",
-    "compile-dict": "bash script/dict.sh",
+    "compile-dict": "bash ./script/dict.sh",
     "postinstall": "npm run compile-dict"
   },
   "name": "vutd-shovel",
