@@ -1,6 +1,6 @@
 import type { Room } from '.';
-import alkana from '../../data/alkana.json';
-import emoji from '../../data/emoji.json';
+import alkana from '../data/alkana.json';
+import emoji from '../data/emoji.json';
 
 const TO_BE_ESCAPED = '\\*+.?{}()[]^$-|/';
 
