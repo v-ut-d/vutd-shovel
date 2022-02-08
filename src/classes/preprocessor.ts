@@ -6,7 +6,7 @@ const TO_BE_ESCAPED = '\\*+.?{}()[]^$-|/';
 
 const URL_REPLACER = [
   // eslint-disable-next-line no-irregular-whitespace
-  /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}(\/[^\s　]*)?/g,
+  /https?:\/\/[^\s　]*/g,
   'URL省略\n',
 ] as const;
 

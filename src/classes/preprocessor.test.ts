@@ -28,7 +28,7 @@ describe('Test Preprocessor', () => {
     );
   });
   it('Replace Japanese URLs', () => {
-    //expect(preprocessor.exec('http://日本語.com/')).toBe('URL省略\n');
+    expect(preprocessor.exec('http://日本語.com/')).toBe('URL省略\n');
     expect(preprocessor.exec('http://xn--wgv71a119e.com/')).toBe('URL省略\n');
   });
   it('Replace GUILD Emojis', () => {
