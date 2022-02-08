@@ -11,14 +11,20 @@ datasource db {
 }
 
 model User {
-  id       String @id @db.VarChar(18)
+  guildId  String @db.VarChar(18)
+  userId   String @db.VarChar(18)
   tone     Int
   speed    Int
   f0       Int
   htsvoice String
+
+  @@id([guildId, userId])
 }
 
 model Emoji {
-  id             String @id @db.VarChar(18)
+  guildId        String   @db.VarChar(18)
+  emojiId        String   @db.VarChar(18)
   pronounciation String
+
+  @@id([guildId, emojiId])
 }
