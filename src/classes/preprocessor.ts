@@ -6,7 +6,7 @@ const TO_BE_ESCAPED = '\\*+.?{}()[]^$-|/';
 
 const URL_REPLACER = [
   // eslint-disable-next-line no-irregular-whitespace
-  /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}(\/[^\s　]*)?/g,
+  /https?:\/\/[^\s　]*/g,
   'URL省略\n',
 ] as const;
 
@@ -31,17 +31,17 @@ const ENGLISH_WORD_REPLACER = [
 ] as const;
 
 const WARA_REPLACER = [
-  /[^a-z](w+)/gi,
-  (_: unknown, str: string) => (str.length > 1 ? 'わらわら' : 'わら'),
+  /(?<!\w)w+(?!\w)/gi,
+  (str: string) => (str.length > 1 ? 'わらわら' : 'わら'),
 ] as const;
 
-const OMIT_REPLACER = [/(^.{100}).+$/, '$1\n以下略'] as const;
+const OMIT_REPLACER = [/^(.{100}).+$/s, '$1\n以下略'] as const;
 
 /**
- * Preprocesser that is used before Open JTalk synthesizes voice.
+ * Preprocessor that is used before Open JTalk synthesizes voice.
  * one will be created when {@link Room}
  */
-export default class Preprocesser {
+export default class Preprocessor {
   constructor(public readonly room: Room) {}
 
   /**
