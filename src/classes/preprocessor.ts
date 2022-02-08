@@ -31,8 +31,8 @@ const ENGLISH_WORD_REPLACER = [
 ] as const;
 
 const WARA_REPLACER = [
-  /[^a-z](w+)/gi,
-  (_: unknown, str: string) => (str.length > 1 ? 'わらわら' : 'わら'),
+  /(?<!\w)w+(?!\w)/gi,
+  (str: string) => (str.length > 1 ? 'わらわら' : 'わら'),
 ] as const;
 
 const OMIT_REPLACER = [/(^.{100}).+$/, '$1\n以下略'] as const;

@@ -52,15 +52,15 @@ describe('Test Preprocessor', () => {
     );
   });
   it('Replace WARA', () => {
-    expect(preprocessor.exec(' w')).toBe('わら');
-    //expect(preprocessor.exec('わらw')).toBe('わらわら');
-    //expect(preprocessor.exec('わらww')).toBe('わらわらわら');
-    //expect(preprocessor.exec('わら ww')).toBe('わら わらわら');
-    //expect(preprocessor.exec('わらwwwwwwwwwwwwww')).toBe('わらわらわら');
-    //expect(preprocessor.exec('わら\nw')).toBe('わら\nわら');
+    expect(preprocessor.exec('w')).toBe('わら');
+    expect(preprocessor.exec('わらw')).toBe('わらわら');
+    expect(preprocessor.exec('わらww')).toBe('わらわらわら');
+    expect(preprocessor.exec('わら ww')).toBe('わら わらわら');
+    expect(preprocessor.exec('わらwwwwwwwwwwwwww')).toBe('わらわらわら');
+    expect(preprocessor.exec('わら\nw')).toBe('わら\nわら');
   });
   it('Do not replace trap-WARA', () => {
-    expect(preprocessor.exec('w')).toBe('w');
+    expect(preprocessor.exec('woow')).toBe('woow');
     expect(preprocessor.exec('whatw')).toBe('whatw');
   });
   it('Replace too long sentence', () => {
