@@ -2,7 +2,7 @@ import { Collection } from 'discord.js';
 import type { Room } from '.';
 import alkana from '../../data/alkana.json';
 import emoji from '../../data/emoji.json';
-import { prisma } from '../database/prisma';
+import { prisma } from '../database';
 
 const TO_BE_ESCAPED = '\\*+.?{}()[]^$-|/';
 
