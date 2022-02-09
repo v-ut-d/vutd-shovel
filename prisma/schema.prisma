@@ -10,7 +10,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
+model Member {
   guildId  String @db.VarChar(18)
   userId   String @db.VarChar(18)
   tone     Int

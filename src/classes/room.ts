@@ -111,7 +111,10 @@ export default class Room {
    * and rejects when bot could connect within 2 secs.
    */
   async ready() {
-    await entersState(this.#connection, VoiceConnectionStatus.Ready, 2000);
+    await Promise.all([
+      entersState(this.#connection, VoiceConnectionStatus.Ready, 2000),
+      this.#preprocessor.dictLoadPromise,
+    ]);
     return;
   }
 
