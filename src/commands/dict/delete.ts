@@ -3,7 +3,7 @@ import type {
   CommandInteraction,
 } from 'discord.js';
 import { DictMessageEmbed, ErrorMessageEmbed } from '../../components';
-import { prisma } from '../../database/prisma';
+import { prisma } from '../../database';
 import rooms from '../../rooms';
 
 /**
