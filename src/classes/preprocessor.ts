@@ -15,7 +15,7 @@ const URL_REPLACER = [
 const GUILD_EMOJI_REPLACER = (dict: Collection<string, string>) =>
   [
     /<:(.+?):(\d{18})>/g,
-    (emoji: string, name: string, id: string) => dict.get(id) ?? `:${name}:`,
+    (_: unknown, name: string, id: string) => dict.get(id) ?? `:${name}:`,
   ] as const;
 
 const UNICODE_EMOJI_REPLACER = [
@@ -48,11 +48,11 @@ const OMIT_REPLACER = [/^(.{100}).+$/s, '$1\n以下略'] as const;
  * one will be created when {@link Room}
  */
 export default class Preprocessor {
-  private guildEmojiDict = new Collection<string, string>();
-  private guildEmojiReplacer = GUILD_EMOJI_REPLACER(this.guildEmojiDict);
-  public dictLoadPromise;
+  #guildEmojiDict = new Collection<string, string>();
+  #guildEmojiReplacer = GUILD_EMOJI_REPLACER(this.#guildEmojiDict);
+  dictLoadPromise;
 
-  constructor(public readonly room: Room) {
+  constructor(readonly room: Room) {
     this.dictLoadPromise = this.loadEmojiDict();
   }
 
@@ -62,15 +62,15 @@ export default class Preprocessor {
    *
    * @memberof Preprocessor
    */
-  public async loadEmojiDict() {
+  async loadEmojiDict() {
     const emojis = await prisma.emoji.findMany({
       where: {
         guildId: this.room.guildId,
       },
     });
-    this.guildEmojiDict.clear();
+    this.#guildEmojiDict.clear();
     emojis.forEach((emoji) => {
-      this.guildEmojiDict.set(emoji.emojiId, emoji.pronounciation);
+      this.#guildEmojiDict.set(emoji.emojiId, emoji.pronounciation);
     });
   }
 
@@ -80,7 +80,7 @@ export default class Preprocessor {
   exec(content: string): string {
     return content
       .replace(...URL_REPLACER)
-      .replace(...this.guildEmojiReplacer)
+      .replace(...this.#guildEmojiReplacer)
       .replace(...UNICODE_EMOJI_REPLACER)
       .replace(...ENGLISH_WORD_REPLACER)
       .replace(...WARA_REPLACER)
