@@ -20,10 +20,9 @@ COPY ./package*.json ./
 
 RUN sed '/prepare/d' -i package.json
 
-RUN apk add --no-cache --virtual .gyp python3 make g++
-RUN apk add --no-cache curl
+RUN apk add --no-cache --virtual .gyp python3 make g++ curl
 RUN npm ci
-RUN apk del .gyp curl
+RUN apk del .gyp
 
 COPY ./voice ./voice
 
