@@ -35,6 +35,25 @@ describe('Test Preprocessor', () => {
     expect(preprocessor.exec('http://xn--wgv71a119e.com/')).toBe('URL省略\n');
   });
 
+  it('Replace CodeBlocks', () => {
+    expect(preprocessor.exec('```ts\nCodeBlock\n```')).toBe('コードブロック\n');
+    expect(preprocessor.exec('?```CodeBlock```?```AnotherCodeBlock```?')).toBe(
+      '?コードブロック\n?コードブロック\n?'
+    );
+    expect(preprocessor.exec('?```CodeBlock\n``?```AnotherCodeBlock```?')).toBe(
+      '?コードブロック\nAnotherCodeBlock```?'
+    );
+  });
+
+  it('Replace Spoilers', () => {
+    expect(preprocessor.exec('||Spoiler||')).toBe('\n');
+    expect(preprocessor.exec('||\n?||')).toBe('パイプパイプ\n?パイプパイプ');
+    expect(preprocessor.exec('||Spoiler||?||Spoiler||?')).toBe('\n?\n?');
+    expect(preprocessor.exec('||Spoiler|?||Spoiler||?')).toBe(
+      '\nSpoilerパイプパイプ?'
+    );
+  });
+
   it('Replace GUILD Emojis', () => {
     expect(preprocessor.exec('<:emoji:618391439964133143>')).toBe(':emoji:');
     expect(preprocessor.exec('This is an <:E:618391439964133143>moji')).toBe(
