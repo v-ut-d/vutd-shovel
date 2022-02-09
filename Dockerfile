@@ -6,7 +6,6 @@ COPY ./package*.json ./tsconfig.json ./
 RUN npm i --ignore-scripts
 
 COPY ./src ./src
-COPY ./data ./data
 RUN npm run build
 
 FROM node:alpine AS runner
