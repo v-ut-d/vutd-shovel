@@ -131,6 +131,10 @@ export default class Room {
     return speaker;
   }
 
+  async reloadEmojiDict() {
+    await this.#preprocessor.loadEmojiDict();
+  }
+
   #play() {
     if (this.#player.state.status === AudioPlayerStatus.Idle) {
       const resource = this.#queue.shift();
