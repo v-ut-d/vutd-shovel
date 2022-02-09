@@ -1,6 +1,7 @@
 import type { Client, CommandInteraction } from 'discord.js';
 import { getGuild } from '../utils';
 import * as cancel from './cancel';
+import * as emojiBulk from './emoji-bulk';
 import * as end from './end';
 import * as start from './start';
 import * as voice from './voice';
@@ -37,5 +38,7 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
       return cancel.handle(interaction);
     case 'voice':
       return voice.handle(interaction);
+    case 'emoji-bulk':
+      return emojiBulk.handle(interaction);
   }
 }

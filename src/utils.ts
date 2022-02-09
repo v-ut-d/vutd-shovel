@@ -12,6 +12,7 @@ if (process.env.NODE_ENV !== 'production')
 export const env = readenv({
   BOT_TOKEN: {},
   GUILD_ID: {},
+  MANAGE_ID: {},
   DEBUG_VC_ID: { default: null },
   DEBUG_TC_ID: { default: null },
   production: {
