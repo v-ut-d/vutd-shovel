@@ -13,9 +13,9 @@ datasource db {
 model Member {
   guildId  String @db.VarChar(18)
   userId   String @db.VarChar(18)
-  tone     Int
-  speed    Int
-  f0       Int
+  tone     Float
+  speed    Float
+  f0       Float
   htsvoice String
 
   @@id([guildId, userId])
