@@ -18,12 +18,14 @@ export const data: ApplicationCommandSubCommandData = {
       name: 'fromword',
       type: 'STRING',
       description: '置換元の単語です。絵文字は一文字で入力してください。',
+      required: true,
     },
     {
       name: 'toword',
       type: 'STRING',
       description:
         '置換先の単語です。辞書に登録された別の単語を入れると意図しない挙動となる可能性があります。',
+      required: true,
     },
   ],
 };

@@ -19,6 +19,7 @@ export const data: ApplicationCommandSubCommandData = {
       type: 'STRING',
       description:
         '削除する単語です。ただし、絵文字の場合は一文字で入力してください。',
+      required: true,
     },
   ],
 };

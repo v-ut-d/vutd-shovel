@@ -18,6 +18,7 @@ export const data: ApplicationCommandSubCommandData = {
       type: 'STRING',
       description:
         '登録情報を検索する単語です。ただし、絵文字の場合は一文字で入力してください。',
+      required: true,
     },
   ],
 };
