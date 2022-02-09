@@ -1,14 +1,24 @@
 import Preprocessor from './preprocessor';
+
 import Room from './room';
 jest.mock('./room');
-
 const RoomMock = Room as jest.Mock;
+
+jest.mock('../database', () => {
+  return {
+    __esModule: true,
+    prisma: {
+      emoji: {
+        findMany: jest.fn().mockResolvedValue([]),
+      },
+    },
+  };
+});
 
 const pillow =
   '春はあけぼの。やうやう白くなりゆく山ぎは、すこしあかりて、紫だちたる 雲のほそくたなびきたる。　夏は夜。月のころはさらなり。やみもなほ、蛍の多く飛びちがひたる。また、 ただ一つ二つなど、ほのかにうち光りて行くもをかし';
 
 describe('Test Preprocessor', () => {
-  jest.spyOn(Preprocessor.prototype, 'loadEmojiDict');
   const preprocessor = new Preprocessor(new RoomMock());
 
   it('Replace basic URLs', () => {
