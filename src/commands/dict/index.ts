@@ -8,7 +8,7 @@ import * as set from './set';
 import * as del from './delete';
 
 /**
- * `/voice` command data.
+ * `/dict` command data.
  */
 export const data: ApplicationCommandData = {
   name: 'dict',
@@ -17,12 +17,12 @@ export const data: ApplicationCommandData = {
 };
 
 /**
- * `/voice` command permission data.
+ * `/dict` command permission data.
  */
 export const permissions: ApplicationCommandPermissions[] = [];
 
 /**
- * handles `/voice` subcommands.
+ * handles `/dict` subcommands.
  */
 export async function handle(interaction: CommandInteraction<'cached'>) {
   const subcommand = interaction.options.getSubcommand(true);

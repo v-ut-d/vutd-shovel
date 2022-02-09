@@ -24,12 +24,11 @@ export const data: ApplicationCommandSubCommandData = {
 };
 
 /**
- * handles `/voice get` command.
+ * handles `/dict get` command.
  */
 export async function handle(interaction: CommandInteraction<'cached'>) {
   try {
     const fromWord = interaction.options.getString('word', true);
-    let toWord: string;
     const emojiInfo = fromWord.match(/^<:(.+?):(?<emojiId>\d{18})>$/);
     if (emojiInfo?.groups?.emojiId) {
       //FromWord is Emoji
@@ -48,13 +47,14 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
               '単語が登録されているかどうか確認してください。'
           )
         );
-      toWord = emoji.pronounciation;
+
+      const toWord = emoji.pronounciation;
+      await interaction.reply({
+        embeds: [new DictMessageEmbed('delete', fromWord, toWord)],
+      });
     } else {
       throw new Error('絵文字以外の単語登録は実装されていません。');
     }
-    await interaction.reply({
-      embeds: [new DictMessageEmbed('delete', fromWord, toWord)],
-    });
 
     const room = rooms.get(interaction.guildId);
     if (room) {

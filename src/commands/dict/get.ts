@@ -23,13 +23,12 @@ export const data: ApplicationCommandSubCommandData = {
 };
 
 /**
- * handles `/voice get` command.
+ * handles `/dict get` command.
  */
 export async function handle(interaction: CommandInteraction<'cached'>) {
   try {
     const fromWord = interaction.options.getString('word', true);
     const emojiInfo = fromWord.match(/^<:(.+?):(?<emojiId>\d{18})>$/);
-    let toWord: string;
     if (emojiInfo?.groups?.emojiId) {
       //FromWord is Emoji
       const emoji = await prisma.emoji.findUnique({
@@ -42,13 +41,14 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
       });
       if (!emoji)
         throw new Error('指定された絵文字の読みは登録されていません。');
-      toWord = emoji.pronounciation;
+
+      const toWord = emoji.pronounciation;
+      await interaction.reply({
+        embeds: [new DictMessageEmbed('get', fromWord, toWord)],
+      });
     } else {
       throw new Error('絵文字以外の単語登録は実装されていません。');
     }
-    await interaction.reply({
-      embeds: [new DictMessageEmbed('get', fromWord, toWord)],
-    });
   } catch (e) {
     await interaction.reply({
       embeds: [new ErrorMessageEmbed('辞書設定', e)],

@@ -29,14 +29,16 @@ export const data: ApplicationCommandSubCommandData = {
 };
 
 /**
- * handles `/voice get` command.
+ * handles `/dict get` command.
  */
 export async function handle(interaction: CommandInteraction<'cached'>) {
   try {
     const fromWord = interaction.options.getString('fromword', true);
     const toWord = interaction.options.getString('toword', true);
     const emojiInfo = fromWord.match(/^<:(.+?):(?<emojiId>\d{18})>$/);
-    if (emojiInfo?.groups?.emojiId) {
+    // emojiInfo.groups always exist
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    if (emojiInfo?.groups!.emojiId) {
       //FromWord is Emoji
       await prisma.emoji
         .upsert({
@@ -55,7 +57,9 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
             pronounciation: toWord,
           },
         })
-        .catch(() => Promise.reject('データベースへの登録に失敗しました。'));
+        .catch(() => {
+          throw new Error('データベースへの登録に失敗しました。');
+        });
 
       const room = rooms.get(interaction.guildId);
       if (room) {
