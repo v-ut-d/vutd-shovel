@@ -29,7 +29,7 @@
     "test": "jest --passWithNoTests",
     "compile-dict": "sh ./script/dict.sh",
     "prisma-setup": "prisma generate",
-    "postinstall": "npm-run-all compile-dict prisma-setup",
+    "postinstall": "npm run compile-dict",
     "prebuild": "npm run prisma-setup"
   },
   "name": "vutd-shovel",
