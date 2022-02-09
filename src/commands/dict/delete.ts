@@ -62,7 +62,7 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
     }
   } catch (e) {
     await interaction.reply({
-      embeds: [new ErrorMessageEmbed('読み上げ設定', e)],
+      embeds: [new ErrorMessageEmbed('辞書設定', e)],
     });
   }
 }
