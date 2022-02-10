@@ -49,6 +49,8 @@ const WARA_REPLACER = [
   (str: string) => (str.length > 1 ? 'わらわら' : 'わら'),
 ] as const;
 
+const NEWLINE_REPLACER = [/\n/g, ' '] as const;
+
 const OMIT_REPLACER = [/^(.{100}).+$/s, '$1 以下略'] as const;
 
 /**
@@ -95,6 +97,7 @@ export default class Preprocessor {
       .replace(...CAMEL_CASE_REPLACER)
       .replace(...ENGLISH_WORD_REPLACER)
       .replace(...WARA_REPLACER)
+      .replace(...NEWLINE_REPLACER)
       .replace(...OMIT_REPLACER);
   }
 }

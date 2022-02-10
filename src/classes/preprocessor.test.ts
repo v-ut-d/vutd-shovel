@@ -57,7 +57,7 @@ describe('Test Preprocessor', () => {
       'hogeユーアールエル省略  fuga'
     );
     expect(preprocessor.exec('hogehttps://example.com/abc\nfuga')).toBe(
-      'hogeユーアールエル省略 \nfuga'
+      'hogeユーアールエル省略  fuga'
     );
   });
 
@@ -86,7 +86,7 @@ describe('Test Preprocessor', () => {
 
   it('Replace Spoilers', () => {
     expect(preprocessor.exec('||Spoiler||')).toBe(' ');
-    expect(preprocessor.exec('||\n?||')).toBe('パイプパイプ\n?パイプパイプ');
+    expect(preprocessor.exec('||\n?||')).toBe('パイプパイプ ?パイプパイプ');
     expect(preprocessor.exec('||Spoiler||?||Spoiler||?')).toBe(' ? ?');
     expect(preprocessor.exec('||Spoiler|?||Spoiler||?')).toBe(
       ' スポイラーパイプパイプ?'
@@ -121,12 +121,16 @@ describe('Test Preprocessor', () => {
     expect(preprocessor.exec('わらww')).toBe('わらわらわら');
     expect(preprocessor.exec('わら ww')).toBe('わら わらわら');
     expect(preprocessor.exec('わらwwwwwwwwwwwwww')).toBe('わらわらわら');
-    expect(preprocessor.exec('わら\nw')).toBe('わら\nわら');
+    expect(preprocessor.exec('わら\nw')).toBe('わら わら');
   });
 
   it('Do not replace trap-WARA', () => {
     expect(preprocessor.exec('woow')).toBe('woow');
     expect(preprocessor.exec('whatw')).toBe('whatw');
+  });
+
+  it('Replace newlines', () => {
+    expect(preprocessor.exec('a\n\nb\n')).toBe('a  b ');
   });
 
   it('Replace too long sentence', () => {
