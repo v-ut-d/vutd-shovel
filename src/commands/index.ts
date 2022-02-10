@@ -12,7 +12,7 @@ import * as voice from './voice';
 export async function register(client: Client<true>) {
   const guild = await getGuild(client);
   await Promise.all(
-    [start, end, cancel, voice].map((e) =>
+    [start, emojiBulk, end, cancel, voice].map((e) =>
       guild.commands
         .create(e.data)
         .then((command) => command.permissions.add(e))

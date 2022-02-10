@@ -18,7 +18,7 @@ export const data: ApplicationCommandData = {
   description:
     'サーバー絵文字の読み上げ方をまとめて操作するためのコマンドです。',
   defaultPermission: false,
-  options: [export_.data, import_.data],
+  options: [export_.data, import_.data, keys.data],
 };
 
 /**
