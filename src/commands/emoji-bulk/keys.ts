@@ -29,15 +29,15 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
       }),
     ]);
 
-    const emojisFiltered = emojisAll.filter(
-      (_, id) => !emojisDb.some((emoji) => emoji.emojiId === id)
-    );
-    const csv = emojisFiltered.map((emoji) => `${emoji}, `).join('\n');
+    const rows = emojisAll
+      .filter((_, id) => !emojisDb.some((emoji) => emoji.emojiId === id))
+      .map((emoji) => `${emoji}, `);
+    const csv = rows.join('\n');
     const fileName = `dictionary/${interaction.guildId}_keys.dict`;
     fs.writeFileSync(fileName, csv, 'utf-8');
 
     await interaction.reply({
-      embeds: [new EmojiBulkMessageEmbed('keys', emojisFiltered.size)],
+      embeds: [new EmojiBulkMessageEmbed('keys', rows.length)],
       files: [fileName],
     });
 
