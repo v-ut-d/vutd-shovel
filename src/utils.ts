@@ -31,6 +31,7 @@ export const env = readenv({
     },
   },
   GUILD_ID: {},
+  MANAGE_ID: {},
   production: {
     from: 'NODE_ENV',
     default: false,
