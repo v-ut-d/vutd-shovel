@@ -2,14 +2,15 @@ import {
   AudioPlayer,
   AudioPlayerStatus,
   AudioResource,
-  DiscordGatewayAdapterCreator,
   entersState,
+  getGroups,
   joinVoiceChannel,
   NoSubscriberBehavior,
   VoiceConnection,
   VoiceConnectionStatus,
 } from '@discordjs/voice';
 import {
+  Client,
   Collection,
   Guild,
   GuildTextBasedChannel,
@@ -19,7 +20,9 @@ import {
   VoiceBasedChannel,
 } from 'discord.js';
 import { Preprocessor, Speaker } from '.';
+import { clientManager } from '../clientManager';
 import { prisma } from '../database';
+import ClientManager from './client';
 
 /**
  * represents one reading session.
@@ -37,12 +40,15 @@ export default class Room {
    */
   guildId: Snowflake;
 
-  #connection: VoiceConnection;
+  #connection?: VoiceConnection;
   #messageCollector: MessageCollector;
   #queue: AudioResource[] = [];
   #player: AudioPlayer;
   #preprocessor: Preprocessor;
   #speakers: Collection<Snowflake, Speaker> = new Collection();
+  #allocatedClient?: Client;
+
+  #joinVCPromise;
 
   constructor(
     /**
@@ -57,15 +63,6 @@ export default class Room {
     this.guild = voiceChannel.guild;
     this.guildId = voiceChannel.guildId;
 
-    this.#connection = joinVoiceChannel({
-      channelId: voiceChannel.id,
-      guildId: voiceChannel.guildId,
-      // needs cast: https://github.com/discordjs/discord.js/issues/7273
-      adapterCreator: voiceChannel.guild
-        .voiceAdapterCreator as unknown as DiscordGatewayAdapterCreator,
-      debug: true,
-    });
-
     this.#player = new AudioPlayer({
       behaviors: {
         noSubscriber: NoSubscriberBehavior.Stop,
@@ -77,14 +74,14 @@ export default class Room {
       if (state.status === AudioPlayerStatus.Idle) this.#play();
     });
 
-    this.#connection.subscribe(this.#player);
-
     this.#preprocessor = new Preprocessor(this);
 
     this.#messageCollector = textChannel.createMessageCollector({
       filter: (message) =>
         message.cleanContent !== '' && !message.cleanContent.startsWith(';'),
     });
+
+    this.#joinVCPromise = this.#joinVC(this.#player);
 
     this.#messageCollector.on('collect', async (message) => {
       const speaker = await this.getOrCreateSpeaker(message.author);
@@ -97,10 +94,43 @@ export default class Room {
     });
 
     process.on('SIGINT', () => {
-      if (this.#connection.state.status !== VoiceConnectionStatus.Destroyed)
+      if (
+        this.#connection &&
+        this.#connection.state.status !== VoiceConnectionStatus.Destroyed
+      )
         this.#connection.destroy();
       process.exit(0);
     });
+  }
+
+  async #joinVC(player: AudioPlayer) {
+    const client = (this.#allocatedClient = clientManager.allocateClient(
+      this.guildId
+    ));
+    if (!client || !client.user?.id) {
+      return Promise.reject(new Error('Could not find any usable client.'));
+    }
+    const guild = await ClientManager.getAltGuild(this.guild, client);
+
+    const groups = getGroups();
+    const userConnections = groups.get(client.user.id);
+    if (userConnections) {
+      groups.set('default', userConnections);
+    } else {
+      const newUserConnections = new Map();
+      groups.set(client.user.id, newUserConnections);
+      groups.set('default', newUserConnections);
+    }
+
+    this.#connection = joinVoiceChannel({
+      channelId: this.voiceChannel.id,
+      guildId: this.voiceChannel.guildId,
+      adapterCreator: guild.voiceAdapterCreator,
+      debug: true,
+    });
+
+    this.#connection.subscribe(player);
+    return this.#connection;
   }
 
   /**
@@ -109,7 +139,9 @@ export default class Room {
    */
   async ready() {
     await Promise.all([
-      entersState(this.#connection, VoiceConnectionStatus.Ready, 2000),
+      this.#joinVCPromise.then((connection: VoiceConnection) => {
+        return entersState(connection, VoiceConnectionStatus.Ready, 2000);
+      }),
       this.#preprocessor.dictLoadPromise,
     ]);
     return;
@@ -166,7 +198,10 @@ export default class Room {
    * disconnects from voice channel and stop collecting messages.
    */
   destroy() {
-    this.#connection.destroy();
+    this.#connection?.destroy();
     this.#messageCollector.stop();
+    if (this.#allocatedClient) {
+      clientManager.freeClient(this.guildId, this.#allocatedClient);
+    }
   }
 }
