@@ -1,7 +1,7 @@
 FROM node AS builder
 
 WORKDIR /app
-COPY ./package*.json ./tsconfig.json ./
+COPY ./package*.json ./tsconfig.json ./prisma/schema.prisma ./
 
 RUN npm i --ignore-scripts
 
@@ -14,12 +14,13 @@ WORKDIR /app
 ENV NODE_ENV production
 
 COPY --from=builder /app/dist ./dist
+COPY ./prisma ./prisma
 COPY ./script ./script
 COPY ./package*.json ./
 
 RUN sed '/prepare/d' -i package.json
 
-RUN apk add --no-cache --virtual .gyp python3 make g++
+RUN apk add --no-cache --virtual .gyp python3 make g++ curl
 RUN npm ci
 RUN apk del .gyp
 
