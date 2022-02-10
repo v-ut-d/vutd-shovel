@@ -29,24 +29,35 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
     const emojiMap: Map<
       string,
       {
-        emojiName?: string | null;
         id: string;
         pronounciation: string;
+        emojiName: string | null;
+        animated: boolean | null;
       }
     > = new Map();
     emojis.forEach((emoji) => {
       emojiMap.set(emoji.emojiId, {
         id: emoji.emojiId,
         pronounciation: emoji.pronounciation,
+        emojiName: null,
+        animated: null,
       });
     });
     (await interaction.guild.emojis.fetch()).forEach((emoji) => {
       const emojiobj = emojiMap.get(emoji.id);
-      if (emojiobj) emojiobj.emojiName = emoji.name;
+      if (emojiobj) {
+        emojiobj.emojiName = emoji.name;
+        emojiobj.animated = emoji.animated;
+      }
     });
 
     const csv = Array.from(emojiMap.values())
-      .map<string>((v) => `<:${v.emojiName}:${v.id}>,${v.pronounciation}`)
+      .map<string>(
+        (v) =>
+          `<${v.animated ? 'a' : ''}:${v.emojiName}:${v.id}>,${
+            v.pronounciation
+          }`
+      )
       .join('\n');
     const fileName = `dictionary/${interaction.guildId}_export.dict`;
     fs.writeFileSync(fileName, csv, 'utf-8');
