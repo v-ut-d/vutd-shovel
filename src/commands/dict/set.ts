@@ -63,9 +63,9 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
           throw new Error('データベースへの登録に失敗しました。');
         });
 
-      const room = rooms.get(interaction.guildId);
-      if (room) {
-        await room.reloadEmojiDict();
+      const roomCollection = rooms.get(interaction.guildId);
+      if (roomCollection) {
+        await roomCollection.each((room) => room.reloadEmojiDict());
       }
     } else {
       throw new Error('絵文字以外の単語登録は実装されていません。');

@@ -46,7 +46,7 @@ export default class Room {
   #player: AudioPlayer;
   #preprocessor: Preprocessor;
   #speakers: Collection<Snowflake, Speaker> = new Collection();
-  #allocatedClient?: Client;
+  allocatedClient?: Client;
 
   #joinVCPromise;
 
@@ -104,7 +104,7 @@ export default class Room {
   }
 
   async #joinVC(player: AudioPlayer) {
-    const client = (this.#allocatedClient = clientManager.allocateClient(
+    const client = (this.allocatedClient = clientManager.allocateClient(
       this.guildId
     ));
     if (!client || !client.user?.id) {
@@ -200,8 +200,8 @@ export default class Room {
   destroy() {
     this.#connection?.destroy();
     this.#messageCollector.stop();
-    if (this.#allocatedClient) {
-      clientManager.freeClient(this.guildId, this.#allocatedClient);
+    if (this.allocatedClient) {
+      clientManager.freeClient(this.guildId, this.allocatedClient);
     }
   }
 }

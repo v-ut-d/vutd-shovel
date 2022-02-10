@@ -19,7 +19,7 @@ export const data: ApplicationCommandSubCommandData = {
  */
 export async function handle(interaction: CommandInteraction<'cached'>) {
   try {
-    const room = rooms.get(interaction.guildId);
+    const room = rooms.get(interaction.guildId)?.first();
     if (!room) throw new Error('現在読み上げ中ではありません。');
 
     const speaker = await room.getOrCreateSpeaker(interaction.user);

@@ -24,11 +24,13 @@ export const permissions: ApplicationCommandPermissions[] = [];
  */
 export async function handle(interaction: CommandInteraction<'cached'>) {
   try {
-    const room = rooms.get(interaction.guildId);
+    const roomCollection = rooms.get(interaction.guildId);
+    const clientId = roomCollection?.firstKey();
+    const room = roomCollection && clientId && roomCollection?.get(clientId);
     if (!room) throw new Error('現在読み上げ中ではありません。');
 
     room.destroy();
-    rooms.delete(interaction.guildId);
+    roomCollection.delete(clientId);
     await interaction.reply({
       embeds: [new EndMessageEmbed(room)],
     });
