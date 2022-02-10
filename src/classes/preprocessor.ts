@@ -33,11 +33,15 @@ const UNICODE_EMOJI_REPLACER = [
   (str: string) => emoji[str as keyof typeof emoji],
 ] as const;
 
+const CAMEL_CASE_REPLACER = [/([a-z]+)(?=[A-Z])/g, '$1 '] as const;
+
 const ENGLISH_WORD_REPLACER = [
-  /([a-z]+) ?/gi,
-  // 'as' assertion; `str in alkana` guarantees this
-  (_: unknown, str: string) =>
-    str in alkana ? alkana[str as keyof typeof alkana] : str,
+  /([a-z]+)[ _-]?/gi,
+  (_: unknown, str: string) => {
+    str = str.toLowerCase();
+    // 'as' assertion; `str in alkana` guarantees this
+    return str in alkana ? alkana[str as keyof typeof alkana] : str;
+  },
 ] as const;
 
 const WARA_REPLACER = [
@@ -88,6 +92,7 @@ export default class Preprocessor {
       .replace(...SPOILER_REPLACER)
       .replace(...this.#guildEmojiReplacer)
       .replace(...UNICODE_EMOJI_REPLACER)
+      .replace(...CAMEL_CASE_REPLACER)
       .replace(...ENGLISH_WORD_REPLACER)
       .replace(...WARA_REPLACER)
       .replace(...OMIT_REPLACER);
