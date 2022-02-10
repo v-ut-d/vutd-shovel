@@ -10,6 +10,26 @@ if (process.env.NODE_ENV !== 'production')
  */
 export const env = readenv({
   BOT_TOKEN: {},
+  SECONDARY_BOT_TOKEN: {
+    default: [] as string[],
+    parse: (s) => {
+      try {
+        const parsed = JSON.parse(s);
+        if (
+          Array.isArray(parsed) &&
+          parsed.every((t) => typeof t === 'string')
+        ) {
+          // 'as' assertion; parsed.every above guarantees this
+          return parsed as string[];
+        } else {
+          return [];
+        }
+      } catch (e) {
+        console.error(e);
+        return [];
+      }
+    },
+  },
   GUILD_ID: {},
   production: {
     from: 'NODE_ENV',

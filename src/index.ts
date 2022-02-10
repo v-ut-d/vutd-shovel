@@ -1,16 +1,19 @@
 import { Client, Intents } from 'discord.js';
-import { env } from './utils';
 import * as handler from './handler';
+import { clientManager } from './clientManager';
 
-const client = new Client({
+const clientOptions = {
   intents: [
     Intents.FLAGS.GUILDS,
     Intents.FLAGS.GUILD_MESSAGES,
     Intents.FLAGS.GUILD_VOICE_STATES,
   ],
-});
+};
+
+const client = new Client(clientOptions);
 
 client.on('ready', handler.ready);
 client.on('interactionCreate', handler.interaction);
 
-client.login(env.BOT_TOKEN);
+clientManager.loginPrimary(client);
+clientManager.instantiateSecondary(clientOptions);
