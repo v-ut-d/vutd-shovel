@@ -64,21 +64,22 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
       // 'as' assertion; regexp above guarantees this
       .map(({ groups }) => groups as Omit<Emoji, 'guildId'>);
 
-    await prisma.emoji.deleteMany({
-      where: {
-        guildId: interaction.guildId,
-        emojiId: {
-          in: matches.map(({ emojiId }) => emojiId),
+    await prisma.$transaction([
+      prisma.emoji.deleteMany({
+        where: {
+          guildId: interaction.guildId,
+          emojiId: {
+            in: matches.map(({ emojiId }) => emojiId),
+          },
         },
-      },
-    });
-
-    await prisma.emoji.createMany({
-      data: matches.map((match) => ({
-        guildId: interaction.guildId,
-        ...match,
-      })),
-    });
+      }),
+      prisma.emoji.createMany({
+        data: matches.map((match) => ({
+          guildId: interaction.guildId,
+          ...match,
+        })),
+      }),
+    ]);
 
     await interaction.followUp({
       embeds: [new EmojiBulkMessageEmbed('import-complete', matches.length)],
