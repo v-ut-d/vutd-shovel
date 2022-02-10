@@ -33,6 +33,8 @@ const UNICODE_EMOJI_REPLACER = [
   (str: string) => emoji[str as keyof typeof emoji],
 ] as const;
 
+const CAMEL_CASE_REPLACER = [/([a-z]+)(?=[A-Z])/g, '$1 '] as const;
+
 const ENGLISH_WORD_REPLACER = [
   /([a-z]+)[ _-]?/gi,
   (_: unknown, str: string) => {
@@ -90,6 +92,7 @@ export default class Preprocessor {
       .replace(...SPOILER_REPLACER)
       .replace(...this.#guildEmojiReplacer)
       .replace(...UNICODE_EMOJI_REPLACER)
+      .replace(...CAMEL_CASE_REPLACER)
       .replace(...ENGLISH_WORD_REPLACER)
       .replace(...WARA_REPLACER)
       .replace(...OMIT_REPLACER);
