@@ -2,7 +2,6 @@ import {
   AudioPlayer,
   AudioPlayerStatus,
   AudioResource,
-  DiscordGatewayAdapterCreator,
   entersState,
   joinVoiceChannel,
   NoSubscriberBehavior,
@@ -19,6 +18,8 @@ import {
   VoiceBasedChannel,
 } from 'discord.js';
 import { Preprocessor, Speaker } from '.';
+import { EndMessageEmbed } from '../components';
+import { prisma } from '../database';
 
 /**
  * represents one reading session.
@@ -59,9 +60,7 @@ export default class Room {
     this.#connection = joinVoiceChannel({
       channelId: voiceChannel.id,
       guildId: voiceChannel.guildId,
-      // needs cast: https://github.com/discordjs/discord.js/issues/7273
-      adapterCreator: voiceChannel.guild
-        .voiceAdapterCreator as unknown as DiscordGatewayAdapterCreator,
+      adapterCreator: voiceChannel.guild.voiceAdapterCreator,
       debug: true,
     });
 
@@ -80,17 +79,35 @@ export default class Room {
 
     this.#preprocessor = new Preprocessor(this);
 
+    voiceChannel.client.on('voiceStateUpdate', async (oldState, newState) => {
+      if (
+        oldState.guild.id === voiceChannel.guildId &&
+        oldState.channelId === voiceChannel.id &&
+        newState.channelId === null && //disconnect
+        voiceChannel.client.user?.id &&
+        voiceChannel.members.has(voiceChannel.client.user?.id) &&
+        voiceChannel.members.size === 1
+      ) {
+        //no member now. leaving the channel.
+        await textChannel.send({
+          embeds: [
+            new EndMessageEmbed(
+              this,
+              'ボイスチャンネルに誰もいなくなったため、'
+            ),
+          ],
+        });
+        this.destroy();
+      }
+    });
+
     this.#messageCollector = textChannel.createMessageCollector({
       filter: (message) =>
         message.cleanContent !== '' && !message.cleanContent.startsWith(';'),
     });
 
-    this.#messageCollector.on('collect', (message) => {
-      let speaker = this.#speakers.get(message.author.id);
-      if (!speaker) {
-        speaker = new Speaker(message.author, true);
-        this.#speakers.set(message.author.id, speaker);
-      }
+    this.#messageCollector.on('collect', async (message) => {
+      const speaker = await this.getOrCreateSpeaker(message.author);
 
       const resource = speaker.synth(
         this.#preprocessor.exec(message.cleanContent)
@@ -122,10 +139,29 @@ export default class Room {
     return this.#speakers.get(userId);
   }
 
-  getOrCreateSpeaker(user: User) {
+  async getOrCreateSpeaker(user: User) {
     let speaker = this.getSpeaker(user.id);
     if (!speaker) {
       speaker = new Speaker(user, true);
+      const options = await prisma.member.findUnique({
+        where: {
+          guildId_userId: {
+            guildId: this.guildId,
+            userId: user.id,
+          },
+        },
+      });
+      if (options) {
+        speaker.options = options;
+      } else {
+        await prisma.member.create({
+          data: {
+            guildId: this.guildId,
+            userId: user.id,
+            ...speaker.options,
+          },
+        });
+      }
       this.#speakers.set(user.id, speaker);
     }
     return speaker;

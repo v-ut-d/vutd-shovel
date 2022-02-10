@@ -1,8 +1,19 @@
 import Preprocessor from './preprocessor';
+
 import Room from './room';
 jest.mock('./room');
-
 const RoomMock = Room as jest.Mock;
+
+jest.mock('../database', () => {
+  return {
+    __esModule: true,
+    prisma: {
+      emoji: {
+        findMany: jest.fn().mockResolvedValue([]),
+      },
+    },
+  };
+});
 
 const pillow =
   '春はあけぼの。やうやう白くなりゆく山ぎは、すこしあかりて、紫だちたる 雲のほそくたなびきたる。　夏は夜。月のころはさらなり。やみもなほ、蛍の多く飛びちがひたる。また、 ただ一つ二つなど、ほのかにうち光りて行くもをかし';
@@ -10,17 +21,45 @@ const pillow =
 describe('Test Preprocessor', () => {
   const preprocessor = new Preprocessor(new RoomMock());
 
+  it('Replaces English words to Katakana', () => {
+    expect(preprocessor.exec('english word')).toBe('イングリッシュワード');
+    expect(preprocessor.exec('Capitalized word')).toBe(
+      'キャピタライズドワード'
+    );
+    expect(preprocessor.exec('typo ingored')).toBe('タイポingored');
+  });
+
+  it('Separate CamelCase', () => {
+    expect(preprocessor.exec('CamelCase')).toBe('キャメルケイス');
+    expect(preprocessor.exec('jsCamelCase')).toBe('jsキャメルケイス');
+    expect(preprocessor.exec('CamleCsae')).toBe('camlecsae');
+  });
+
+  it('Separate snake_case', () => {
+    expect(preprocessor.exec('snake_case')).toBe('スネイクケイス');
+    expect(preprocessor.exec('snkae_csae')).toBe('snkaecsae');
+  });
+
+  it('Separate kebab-case', () => {
+    expect(preprocessor.exec('kebab-case')).toBe('カバブケイス');
+    expect(preprocessor.exec('kebba-csae')).toBe('kebbacsae');
+  });
+
   it('Replace basic URLs', () => {
-    expect(preprocessor.exec('http://example.com')).toBe('URL省略\n');
-    expect(preprocessor.exec('https://example.com/')).toBe('URL省略\n');
+    expect(preprocessor.exec('http://example.com')).toBe(
+      'ユーアールエル省略\n'
+    );
+    expect(preprocessor.exec('https://example.com/')).toBe(
+      'ユーアールエル省略\n'
+    );
     expect(preprocessor.exec('https://example.com/abc?search=c&d=c')).toBe(
-      'URL省略\n'
+      'ユーアールエル省略\n'
     );
     expect(preprocessor.exec('hogehttps://example.com/abc fuga')).toBe(
-      'hogeURL省略\n fuga'
+      'hogeユーアールエル省略\n fuga'
     );
     expect(preprocessor.exec('hogehttps://example.com/abc\nfuga')).toBe(
-      'hogeURL省略\n\nfuga'
+      'hogeユーアールエル省略\n\nfuga'
     );
   });
 
@@ -31,29 +70,52 @@ describe('Test Preprocessor', () => {
   });
 
   it('Replace Japanese URLs', () => {
-    expect(preprocessor.exec('http://日本語.com/')).toBe('URL省略\n');
-    expect(preprocessor.exec('http://xn--wgv71a119e.com/')).toBe('URL省略\n');
+    expect(preprocessor.exec('http://日本語.com/')).toBe(
+      'ユーアールエル省略\n'
+    );
+    expect(preprocessor.exec('http://xn--wgv71a119e.com/')).toBe(
+      'ユーアールエル省略\n'
+    );
+  });
+
+  it('Replace CodeBlocks', () => {
+    expect(preprocessor.exec('```ts\nCodeBlock\n```')).toBe('コードブロック\n');
+    expect(preprocessor.exec('?```CodeBlock```?```AnotherCodeBlock```?')).toBe(
+      '?コードブロック\n?コードブロック\n?'
+    );
+    expect(preprocessor.exec('?```CodeBlock\n``?```AnotherCodeBlock```?')).toBe(
+      '?コードブロック\nアナザーコウドブロック```?'
+    );
+  });
+
+  it('Replace Spoilers', () => {
+    expect(preprocessor.exec('||Spoiler||')).toBe('\n');
+    expect(preprocessor.exec('||\n?||')).toBe('パイプパイプ\n?パイプパイプ');
+    expect(preprocessor.exec('||Spoiler||?||Spoiler||?')).toBe('\n?\n?');
+    expect(preprocessor.exec('||Spoiler|?||Spoiler||?')).toBe(
+      '\nスポイラーパイプパイプ?'
+    );
   });
 
   it('Replace GUILD Emojis', () => {
     expect(preprocessor.exec('<:emoji:618391439964133143>')).toBe(':emoji:');
     expect(preprocessor.exec('This is an <:E:618391439964133143>moji')).toBe(
-      'Thisイズアン:E:moji'
+      'ジスイズアン:e:moji'
     );
   });
 
   it('Do not replace non-guild-emojis', () => {
     expect(preprocessor.exec('<:emojiR:18391439964133143>')).toBe(
-      '小なり:emojiR:18391439964133143大なり'
+      '小なり:emojir:18391439964133143大なり'
     );
     expect(preprocessor.exec(':emojiR:618391439964133143>')).toBe(
-      ':emojiR:618391439964133143大なり'
+      ':emojir:618391439964133143大なり'
     );
     expect(preprocessor.exec('<:emojiR618391439964133143>')).toBe(
-      '小なり:emojiR618391439964133143大なり'
+      '小なり:emojir618391439964133143大なり'
     );
     expect(preprocessor.exec('<:emojiR:618391439964133143')).toBe(
-      '小なり:emojiR:618391439964133143'
+      '小なり:emojir:618391439964133143'
     );
   });
 
@@ -82,11 +144,11 @@ describe('Test Preprocessor', () => {
 
   it('Replace too long sentence(with URL)', () => {
     const url = 'http://example.com ';
-    expect(preprocessor.exec(url + pillow.substring(0, 93))).toBe(
-      'URL省略\n ' + pillow.substring(0, 93)
+    expect(preprocessor.exec(url + pillow.substring(0, 89))).toBe(
+      'ユーアールエル省略\n ' + pillow.substring(0, 89)
     );
-    expect(preprocessor.exec(url + pillow.substring(0, 94))).toBe(
-      'URL省略\n ' + pillow.substring(0, 93) + '\n以下略'
+    expect(preprocessor.exec(url + pillow.substring(0, 90))).toBe(
+      'ユーアールエル省略\n ' + pillow.substring(0, 89) + '\n以下略'
     );
   });
 });
