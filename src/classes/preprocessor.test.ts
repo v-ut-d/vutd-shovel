@@ -46,20 +46,18 @@ describe('Test Preprocessor', () => {
   });
 
   it('Replace basic URLs', () => {
-    expect(preprocessor.exec('http://example.com')).toBe(
-      'ユーアールエル省略\n'
-    );
+    expect(preprocessor.exec('http://example.com')).toBe('ユーアールエル省略 ');
     expect(preprocessor.exec('https://example.com/')).toBe(
-      'ユーアールエル省略\n'
+      'ユーアールエル省略 '
     );
     expect(preprocessor.exec('https://example.com/abc?search=c&d=c')).toBe(
-      'ユーアールエル省略\n'
+      'ユーアールエル省略 '
     );
     expect(preprocessor.exec('hogehttps://example.com/abc fuga')).toBe(
-      'hogeユーアールエル省略\n fuga'
+      'hogeユーアールエル省略  fuga'
     );
     expect(preprocessor.exec('hogehttps://example.com/abc\nfuga')).toBe(
-      'hogeユーアールエル省略\n\nfuga'
+      'hogeユーアールエル省略 \nfuga'
     );
   });
 
@@ -70,30 +68,28 @@ describe('Test Preprocessor', () => {
   });
 
   it('Replace Japanese URLs', () => {
-    expect(preprocessor.exec('http://日本語.com/')).toBe(
-      'ユーアールエル省略\n'
-    );
+    expect(preprocessor.exec('http://日本語.com/')).toBe('ユーアールエル省略 ');
     expect(preprocessor.exec('http://xn--wgv71a119e.com/')).toBe(
-      'ユーアールエル省略\n'
+      'ユーアールエル省略 '
     );
   });
 
   it('Replace CodeBlocks', () => {
-    expect(preprocessor.exec('```ts\nCodeBlock\n```')).toBe('コードブロック\n');
+    expect(preprocessor.exec('```ts\nCodeBlock\n```')).toBe('コードブロック ');
     expect(preprocessor.exec('?```CodeBlock```?```AnotherCodeBlock```?')).toBe(
-      '?コードブロック\n?コードブロック\n?'
+      '?コードブロック ?コードブロック ?'
     );
     expect(preprocessor.exec('?```CodeBlock\n``?```AnotherCodeBlock```?')).toBe(
-      '?コードブロック\nアナザーコウドブロック```?'
+      '?コードブロック アナザーコウドブロック```?'
     );
   });
 
   it('Replace Spoilers', () => {
-    expect(preprocessor.exec('||Spoiler||')).toBe('\n');
+    expect(preprocessor.exec('||Spoiler||')).toBe(' ');
     expect(preprocessor.exec('||\n?||')).toBe('パイプパイプ\n?パイプパイプ');
-    expect(preprocessor.exec('||Spoiler||?||Spoiler||?')).toBe('\n?\n?');
+    expect(preprocessor.exec('||Spoiler||?||Spoiler||?')).toBe(' ? ?');
     expect(preprocessor.exec('||Spoiler|?||Spoiler||?')).toBe(
-      '\nスポイラーパイプパイプ?'
+      ' スポイラーパイプパイプ?'
     );
   });
 
@@ -138,17 +134,17 @@ describe('Test Preprocessor', () => {
       pillow.substring(0, 100)
     );
     expect(preprocessor.exec(pillow.substring(0, 101))).toBe(
-      pillow.substring(0, 100) + '\n以下略'
+      pillow.substring(0, 100) + ' 以下略'
     );
   });
 
   it('Replace too long sentence(with URL)', () => {
     const url = 'http://example.com ';
     expect(preprocessor.exec(url + pillow.substring(0, 89))).toBe(
-      'ユーアールエル省略\n ' + pillow.substring(0, 89)
+      'ユーアールエル省略  ' + pillow.substring(0, 89)
     );
     expect(preprocessor.exec(url + pillow.substring(0, 90))).toBe(
-      'ユーアールエル省略\n ' + pillow.substring(0, 89) + '\n以下略'
+      'ユーアールエル省略  ' + pillow.substring(0, 89) + ' 以下略'
     );
   });
 });
