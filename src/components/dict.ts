@@ -1,7 +1,7 @@
 import BaseMessageEmbed from './base';
 
 /**
- * embed sent when user gets or sets voice setting.
+ * embed sent when user gets, sets, or deletes a word dictionary.
  */
 export default class DictMessageEmbed extends BaseMessageEmbed {
   constructor(
