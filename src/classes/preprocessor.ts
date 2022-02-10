@@ -12,6 +12,10 @@ const URL_REPLACER = [
   'URL省略\n',
 ] as const;
 
+const CODEBLOCK_REPLACER = [/```.*?```/gs, 'コードブロック\n'] as const;
+
+const SPOILER_REPLACER = [/\|\|.*?\|\|/g, '\n'] as const;
+
 const GUILD_EMOJI_REPLACER = (dict: Collection<string, string>) =>
   [
     /<:(.+?):(\d{18})>/g,
@@ -80,6 +84,8 @@ export default class Preprocessor {
   exec(content: string): string {
     return content
       .replace(...URL_REPLACER)
+      .replace(...CODEBLOCK_REPLACER)
+      .replace(...SPOILER_REPLACER)
       .replace(...this.#guildEmojiReplacer)
       .replace(...UNICODE_EMOJI_REPLACER)
       .replace(...ENGLISH_WORD_REPLACER)

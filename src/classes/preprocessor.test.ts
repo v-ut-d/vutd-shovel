@@ -1,8 +1,19 @@
 import Preprocessor from './preprocessor';
+
 import Room from './room';
 jest.mock('./room');
-
 const RoomMock = Room as jest.Mock;
+
+jest.mock('../database', () => {
+  return {
+    __esModule: true,
+    prisma: {
+      emoji: {
+        findMany: jest.fn().mockResolvedValue([]),
+      },
+    },
+  };
+});
 
 const pillow =
   '春はあけぼの。やうやう白くなりゆく山ぎは、すこしあかりて、紫だちたる 雲のほそくたなびきたる。　夏は夜。月のころはさらなり。やみもなほ、蛍の多く飛びちがひたる。また、 ただ一つ二つなど、ほのかにうち光りて行くもをかし';
@@ -33,6 +44,25 @@ describe('Test Preprocessor', () => {
   it('Replace Japanese URLs', () => {
     expect(preprocessor.exec('http://日本語.com/')).toBe('URL省略\n');
     expect(preprocessor.exec('http://xn--wgv71a119e.com/')).toBe('URL省略\n');
+  });
+
+  it('Replace CodeBlocks', () => {
+    expect(preprocessor.exec('```ts\nCodeBlock\n```')).toBe('コードブロック\n');
+    expect(preprocessor.exec('?```CodeBlock```?```AnotherCodeBlock```?')).toBe(
+      '?コードブロック\n?コードブロック\n?'
+    );
+    expect(preprocessor.exec('?```CodeBlock\n``?```AnotherCodeBlock```?')).toBe(
+      '?コードブロック\nAnotherCodeBlock```?'
+    );
+  });
+
+  it('Replace Spoilers', () => {
+    expect(preprocessor.exec('||Spoiler||')).toBe('\n');
+    expect(preprocessor.exec('||\n?||')).toBe('パイプパイプ\n?パイプパイプ');
+    expect(preprocessor.exec('||Spoiler||?||Spoiler||?')).toBe('\n?\n?');
+    expect(preprocessor.exec('||Spoiler|?||Spoiler||?')).toBe(
+      '\nSpoilerパイプパイプ?'
+    );
   });
 
   it('Replace GUILD Emojis', () => {
