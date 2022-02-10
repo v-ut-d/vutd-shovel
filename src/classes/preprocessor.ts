@@ -34,10 +34,12 @@ const UNICODE_EMOJI_REPLACER = [
 ] as const;
 
 const ENGLISH_WORD_REPLACER = [
-  /([a-z]+) ?/gi,
-  // 'as' assertion; `str in alkana` guarantees this
-  (_: unknown, str: string) =>
-    str in alkana ? alkana[str as keyof typeof alkana] : str,
+  /([a-z]+)[ _-]?/gi,
+  (_: unknown, str: string) => {
+    str = str.toLowerCase();
+    // 'as' assertion; `str in alkana` guarantees this
+    return str in alkana ? alkana[str as keyof typeof alkana] : str;
+  },
 ] as const;
 
 const WARA_REPLACER = [

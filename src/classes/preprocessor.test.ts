@@ -21,6 +21,30 @@ const pillow =
 describe('Test Preprocessor', () => {
   const preprocessor = new Preprocessor(new RoomMock());
 
+  it('Replaces English words to Katakana', () => {
+    expect(preprocessor.exec('english word')).toBe('イングリッシュワード');
+    expect(preprocessor.exec('Capitalized word')).toBe(
+      'キャピタライズドワード'
+    );
+    expect(preprocessor.exec('typo ingored')).toBe('タイポingored');
+  });
+
+  it('Separate CamelCase', () => {
+    expect(preprocessor.exec('CamelCase')).toBe('キャメルケイス');
+    expect(preprocessor.exec('jsCamelCase')).toBe('jsキャメルケイス');
+    expect(preprocessor.exec('CamleCsae')).toBe('camlecsae');
+  });
+
+  it('Separate snake_case', () => {
+    expect(preprocessor.exec('snake_case')).toBe('スネイクケイス');
+    expect(preprocessor.exec('snkae_csae')).toBe('snkaecsae');
+  });
+
+  it('Separate kebab-case', () => {
+    expect(preprocessor.exec('kebab-case')).toBe('カバブケイス');
+    expect(preprocessor.exec('kebba-csae')).toBe('kebbacsae');
+  });
+
   it('Replace basic URLs', () => {
     expect(preprocessor.exec('http://example.com')).toBe('URL省略\n');
     expect(preprocessor.exec('https://example.com/')).toBe('URL省略\n');
