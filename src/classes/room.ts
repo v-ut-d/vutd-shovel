@@ -2,7 +2,6 @@ import {
   AudioPlayer,
   AudioPlayerStatus,
   AudioResource,
-  DiscordGatewayAdapterCreator,
   entersState,
   joinVoiceChannel,
   NoSubscriberBehavior,
@@ -61,9 +60,7 @@ export default class Room {
     this.#connection = joinVoiceChannel({
       channelId: voiceChannel.id,
       guildId: voiceChannel.guildId,
-      // needs cast: https://github.com/discordjs/discord.js/issues/7273
-      adapterCreator: voiceChannel.guild
-        .voiceAdapterCreator as unknown as DiscordGatewayAdapterCreator,
+      adapterCreator: voiceChannel.guild.voiceAdapterCreator,
       debug: true,
     });
 
