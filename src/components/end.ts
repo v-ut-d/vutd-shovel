@@ -5,10 +5,10 @@ import BaseMessageEmbed from './base';
  * embed sent when the bot ends reading.
  */
 export default class EndMessageEmbed extends BaseMessageEmbed {
-  constructor(room: Room, descprefix?: string) {
+  constructor(room: Room, descprefix = '') {
     super({
       title: '読み上げ終了',
-      description: (descprefix ?? '') + '読み上げを終了します。',
+      description: `${descprefix}読み上げを終了します。`,
       fields: [
         {
           name: 'ボイスチャンネル',
