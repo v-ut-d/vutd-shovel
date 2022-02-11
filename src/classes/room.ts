@@ -82,7 +82,9 @@ export default class Room {
 
     this.#messageCollector = textChannel.createMessageCollector({
       filter: (message) =>
-        message.cleanContent !== '' && !message.cleanContent.startsWith(';'),
+        message.cleanContent !== '' &&
+        !message.cleanContent.startsWith(';') &&
+        !message.author.bot,
     });
 
     this.#messageCollector.on('collect', (message) => {
