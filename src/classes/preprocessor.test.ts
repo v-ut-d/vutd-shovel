@@ -135,20 +135,22 @@ describe('Test Preprocessor', () => {
 
   it('Replace too long sentence', () => {
     expect(preprocessor.exec(pillow.substring(0, 100))).toBe(
-      pillow.substring(0, 100)
+      pillow.substring(0, 100).replace('　', ' ')
     );
     expect(preprocessor.exec(pillow.substring(0, 101))).toBe(
-      pillow.substring(0, 100) + ' 以下略'
+      pillow.substring(0, 100).replace('　', ' ') + ' 以下略'
     );
   });
 
   it('Replace too long sentence(with URL)', () => {
     const url = 'http://example.com ';
     expect(preprocessor.exec(url + pillow.substring(0, 89))).toBe(
-      'ユーアールエル省略  ' + pillow.substring(0, 89)
+      'ユーアールエル省略  ' + pillow.substring(0, 89).replace('　', ' ')
     );
     expect(preprocessor.exec(url + pillow.substring(0, 90))).toBe(
-      'ユーアールエル省略  ' + pillow.substring(0, 89) + ' 以下略'
+      'ユーアールエル省略  ' +
+        pillow.substring(0, 89).replace('　', ' ') +
+        ' 以下略'
     );
   });
 });
