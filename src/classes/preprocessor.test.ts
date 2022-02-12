@@ -46,20 +46,18 @@ describe('Test Preprocessor', () => {
   });
 
   it('Replace basic URLs', () => {
-    expect(preprocessor.exec('http://example.com')).toBe(
-      'ユーアールエル省略\n'
-    );
+    expect(preprocessor.exec('http://example.com')).toBe('ユーアールエル省略 ');
     expect(preprocessor.exec('https://example.com/')).toBe(
-      'ユーアールエル省略\n'
+      'ユーアールエル省略 '
     );
     expect(preprocessor.exec('https://example.com/abc?search=c&d=c')).toBe(
-      'ユーアールエル省略\n'
+      'ユーアールエル省略 '
     );
     expect(preprocessor.exec('hogehttps://example.com/abc fuga')).toBe(
-      'hogeユーアールエル省略\n fuga'
+      'hogeユーアールエル省略  fuga'
     );
     expect(preprocessor.exec('hogehttps://example.com/abc\nfuga')).toBe(
-      'hogeユーアールエル省略\n\nfuga'
+      'hogeユーアールエル省略  fuga'
     );
   });
 
@@ -70,30 +68,28 @@ describe('Test Preprocessor', () => {
   });
 
   it('Replace Japanese URLs', () => {
-    expect(preprocessor.exec('http://日本語.com/')).toBe(
-      'ユーアールエル省略\n'
-    );
+    expect(preprocessor.exec('http://日本語.com/')).toBe('ユーアールエル省略 ');
     expect(preprocessor.exec('http://xn--wgv71a119e.com/')).toBe(
-      'ユーアールエル省略\n'
+      'ユーアールエル省略 '
     );
   });
 
   it('Replace CodeBlocks', () => {
-    expect(preprocessor.exec('```ts\nCodeBlock\n```')).toBe('コードブロック\n');
+    expect(preprocessor.exec('```ts\nCodeBlock\n```')).toBe('コードブロック ');
     expect(preprocessor.exec('?```CodeBlock```?```AnotherCodeBlock```?')).toBe(
-      '?コードブロック\n?コードブロック\n?'
+      '?コードブロック ?コードブロック ?'
     );
     expect(preprocessor.exec('?```CodeBlock\n``?```AnotherCodeBlock```?')).toBe(
-      '?コードブロック\nアナザーコウドブロック```?'
+      '?コードブロック アナザーコウドブロック```?'
     );
   });
 
   it('Replace Spoilers', () => {
-    expect(preprocessor.exec('||Spoiler||')).toBe('\n');
-    expect(preprocessor.exec('||\n?||')).toBe('パイプパイプ\n?パイプパイプ');
-    expect(preprocessor.exec('||Spoiler||?||Spoiler||?')).toBe('\n?\n?');
+    expect(preprocessor.exec('||Spoiler||')).toBe(' ');
+    expect(preprocessor.exec('||\n?||')).toBe('パイプパイプ ?パイプパイプ');
+    expect(preprocessor.exec('||Spoiler||?||Spoiler||?')).toBe(' ? ?');
     expect(preprocessor.exec('||Spoiler|?||Spoiler||?')).toBe(
-      '\nスポイラーパイプパイプ?'
+      ' スポイラーパイプパイプ?'
     );
   });
 
@@ -125,7 +121,7 @@ describe('Test Preprocessor', () => {
     expect(preprocessor.exec('わらww')).toBe('わらわらわら');
     expect(preprocessor.exec('わら ww')).toBe('わら わらわら');
     expect(preprocessor.exec('わらwwwwwwwwwwwwww')).toBe('わらわらわら');
-    expect(preprocessor.exec('わら\nw')).toBe('わら\nわら');
+    expect(preprocessor.exec('わら\nw')).toBe('わら わら');
   });
 
   it('Do not replace trap-WARA', () => {
@@ -133,22 +129,28 @@ describe('Test Preprocessor', () => {
     expect(preprocessor.exec('whatw')).toBe('whatw');
   });
 
+  it('Replace newlines', () => {
+    expect(preprocessor.exec('a\n\nb\n')).toBe('a  b ');
+  });
+
   it('Replace too long sentence', () => {
     expect(preprocessor.exec(pillow.substring(0, 100))).toBe(
-      pillow.substring(0, 100)
+      pillow.substring(0, 100).replace('　', ' ')
     );
     expect(preprocessor.exec(pillow.substring(0, 101))).toBe(
-      pillow.substring(0, 100) + '\n以下略'
+      pillow.substring(0, 100).replace('　', ' ') + ' 以下略'
     );
   });
 
   it('Replace too long sentence(with URL)', () => {
     const url = 'http://example.com ';
     expect(preprocessor.exec(url + pillow.substring(0, 89))).toBe(
-      'ユーアールエル省略\n ' + pillow.substring(0, 89)
+      'ユーアールエル省略  ' + pillow.substring(0, 89).replace('　', ' ')
     );
     expect(preprocessor.exec(url + pillow.substring(0, 90))).toBe(
-      'ユーアールエル省略\n ' + pillow.substring(0, 89) + '\n以下略'
+      'ユーアールエル省略  ' +
+        pillow.substring(0, 89).replace('　', ' ') +
+        ' 以下略'
     );
   });
 });

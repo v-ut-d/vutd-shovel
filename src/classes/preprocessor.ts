@@ -9,12 +9,12 @@ const TO_BE_ESCAPED = '\\*+.?{}()[]^$-|/';
 const URL_REPLACER = [
   // eslint-disable-next-line no-irregular-whitespace
   /https?:\/\/[^\s　]*/g,
-  'URL省略\n',
+  'URL省略 ',
 ] as const;
 
-const CODEBLOCK_REPLACER = [/```.*?```/gs, 'コードブロック\n'] as const;
+const CODEBLOCK_REPLACER = [/```.*?```/gs, 'コードブロック '] as const;
 
-const SPOILER_REPLACER = [/\|\|.*?\|\|/g, '\n'] as const;
+const SPOILER_REPLACER = [/\|\|.*?\|\|/g, ' '] as const;
 
 const GUILD_EMOJI_REPLACER = (dict: Collection<string, string>) =>
   [
@@ -49,7 +49,9 @@ const WARA_REPLACER = [
   (str: string) => (str.length > 1 ? 'わらわら' : 'わら'),
 ] as const;
 
-const OMIT_REPLACER = [/^(.{100}).+$/s, '$1\n以下略'] as const;
+const NEWLINE_SPACE_REPLACER = [/[\n\r\s]/g, ' '] as const;
+
+const OMIT_REPLACER = [/^(.{100}).+$/s, '$1 以下略'] as const;
 
 /**
  * Preprocessor that is used before Open JTalk synthesizes voice.
@@ -95,6 +97,7 @@ export default class Preprocessor {
       .replace(...CAMEL_CASE_REPLACER)
       .replace(...ENGLISH_WORD_REPLACER)
       .replace(...WARA_REPLACER)
+      .replace(...NEWLINE_SPACE_REPLACER)
       .replace(...OMIT_REPLACER);
   }
 }
