@@ -14,7 +14,8 @@ export default class DictMessageEmbed extends BaseMessageEmbed {
       case 'get':
         description =
           `${wordFrom}は以下のように登録されています：\n` +
-          `'${wordFrom}'->'${wordTo}'`;
+          `'${wordFrom}'->'${wordTo}'` +
+          '(置換先の単語の一部または全部が辞書に登録されていると意図した挙動にならないことがあります)';
         break;
       case 'set':
         description =
