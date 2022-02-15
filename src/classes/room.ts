@@ -173,6 +173,10 @@ export default class Room {
     await this.#preprocessor.loadEmojiDict();
   }
 
+  async reloadGuildDict() {
+    await this.#preprocessor.loadGuildDict();
+  }
+
   #play() {
     if (this.#player.state.status === AudioPlayerStatus.Idle) {
       const resource = this.#queue.shift();

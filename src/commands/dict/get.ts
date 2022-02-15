@@ -48,7 +48,19 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
         embeds: [new DictMessageEmbed('get', fromWord, toWord)],
       });
     } else {
-      throw new Error('絵文字以外の単語登録は実装されていません。');
+      const word = await prisma.guildDictionary.findUnique({
+        where: {
+          guildId_replaceFrom: {
+            guildId: interaction.guildId,
+            replaceFrom: fromWord,
+          },
+        },
+      });
+      if (!word) throw new Error('指定された単語は登録されていません');
+      const toWord = word.replaceTo;
+      await interaction.reply({
+        embeds: [new DictMessageEmbed('get', fromWord, toWord)],
+      });
     }
   } catch (e) {
     await interaction.reply({

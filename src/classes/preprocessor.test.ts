@@ -11,6 +11,9 @@ jest.mock('../database', () => {
       emoji: {
         findMany: jest.fn().mockResolvedValue([]),
       },
+      guildDictionary: {
+        findMany: jest.fn().mockResolvedValue([]),
+      },
     },
   };
 });
