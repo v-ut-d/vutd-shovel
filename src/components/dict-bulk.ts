@@ -20,7 +20,8 @@ export default class DictBulkMessageEmbed extends BaseMessageEmbed {
 複数のファイルを添付した場合、結合されたものが使用されます。`;
         break;
       case 'import-complete':
-        description = 'サーバー単語をインポートしました。';
+        description =
+          'サーバー単語をインポートしました。インポート前のサーバー辞書を添付します。';
         break;
       case 'export':
         description = 'サーバー単語辞書を出力します。';

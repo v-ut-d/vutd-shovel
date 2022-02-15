@@ -13,6 +13,15 @@ export const data: ApplicationCommandSubCommandData = {
   name: 'import',
   type: 'SUB_COMMAND',
   description: '辞書にまとめて単語を登録します。',
+  options: [
+    {
+      name: 'replace',
+      type: 'BOOLEAN',
+      required: false,
+      description:
+        '単語を追加する際、元の辞書の内容をすべて削除するかどうかを指定します。デフォルトでFalse(単語を削除しない)です。',
+    },
+  ],
 };
 
 /**
@@ -20,6 +29,8 @@ export const data: ApplicationCommandSubCommandData = {
  */
 export async function handle(interaction: CommandInteraction<'cached'>) {
   try {
+    const replaceEntries = interaction.options.getBoolean('replace') ?? false;
+
     if (!interaction.channel)
       throw new Error(
         'サーバーのこのbotが閲覧可能なチャンネル内で実行してください。'
@@ -68,13 +79,20 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
         };
       });
 
-    await prisma.$transaction([
+    const transactionResult = await prisma.$transaction([
+      prisma.guildDictionary.findMany({
+        where: {
+          guildId: interaction.guildId,
+        },
+      }),
       prisma.guildDictionary.deleteMany({
         where: {
           guildId: interaction.guildId,
-          replaceFrom: {
-            in: entries.map(({ replaceFrom }) => replaceFrom),
-          },
+          replaceFrom: replaceEntries
+            ? undefined
+            : {
+                in: entries.map(({ replaceFrom }) => replaceFrom),
+              },
         },
       }),
       prisma.guildDictionary.createMany({
@@ -85,8 +103,20 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
       }),
     ]);
 
+    const dictEntries = transactionResult[0];
+    const csv = dictEntries
+      .map((entry) => `${entry.replaceFrom},${entry.replaceTo}`)
+      .join('\n');
+
     await interaction.followUp({
       embeds: [new DictBulkMessageEmbed('import-complete', entries.length)],
+      files: [
+        {
+          attachment: Buffer.from(csv),
+          name: `${interaction.guildId}_before_import.dict`,
+          description: 'インポート前のサーバー辞書です。F',
+        },
+      ],
     });
   } catch (e) {
     const method = interaction.replied ? 'followUp' : 'reply';
