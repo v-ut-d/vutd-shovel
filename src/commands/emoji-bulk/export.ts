@@ -42,7 +42,7 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
       files: [
         {
           attachment: Buffer.from(csv),
-          name: `dictionary/${interaction.guildId}_export.dict`,
+          name: `${interaction.guildId}_export.dict`,
         },
       ],
     });
