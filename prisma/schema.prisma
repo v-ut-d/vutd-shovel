@@ -22,9 +22,17 @@ model Member {
 }
 
 model Emoji {
-  guildId        String   @db.VarChar(18)
-  emojiId        String   @db.VarChar(18)
+  guildId        String @db.VarChar(18)
+  emojiId        String @db.VarChar(18)
   pronounciation String
 
   @@id([guildId, emojiId])
+}
+
+model GuildDictionary {
+  guildId     String
+  replaceFrom String
+  replaceTo   String
+
+  @@id([guildId, replaceFrom])
 }
