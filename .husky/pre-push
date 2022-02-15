@@ -1,18 +1,15 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
-readonly REJECT_PUSH_BRANCHES=('master' 'prevent-main-push')
-
-while read local_ref local_sha1 remote_ref remote_sha1
-do
-    for branch in ${REJECT_PUSH_BRANCHES[@]}; do
-        if [[ "${remote_ref##refs/heads/}" = "${branch}" ]]; then
-            echo -e "\033[0;32mDo not push to\033[m\033[1;34m ${branch}\033[m \033[0;32mbranch\033[m"
-            exit 1
-        fi
-    done
-done
-
 npm test
 
+protected_branch='main'
+current_branch=$(git symbolic-ref HEAD | sed -e 's,.*/\(.*\),\1,')
 
+if [ $protected_branch = $current_branch ]
+then
+    echo "You cannot push to main.">&2
+    exit 1
+else
+    exit 0
+fi
