@@ -43,8 +43,27 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
       dictRoleName = '@everyone';
     }
 
+    const numberOfEmojis = await prisma.emoji.count({
+      where: {
+        guildId: interaction.guildId,
+      },
+    });
+    const numberOfDictEntries = await prisma.guildDictionary.count({
+      where: {
+        guildId: interaction.guildId,
+      },
+    });
+
     await interaction.reply({
-      embeds: [new SettingMessageEmbed('get', setting, dictRoleName)],
+      embeds: [
+        new SettingMessageEmbed(
+          'get',
+          setting,
+          dictRoleName,
+          numberOfEmojis,
+          numberOfDictEntries
+        ),
+      ],
     });
   } catch (e) {
     await interaction.reply({

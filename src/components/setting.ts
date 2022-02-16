@@ -8,7 +8,9 @@ export default class SettingMessageEmbed extends BaseMessageEmbed {
   constructor(
     type: 'get' | 'set',
     setting: GuildSettings,
-    dictRoleName: string
+    dictRoleName: string,
+    numberOfEmojis: number,
+    numberOfDictEntries: number
   ) {
     let description: string;
     switch (type) {
@@ -42,6 +44,14 @@ export default class SettingMessageEmbed extends BaseMessageEmbed {
         {
           name: '辞書書き込みロール',
           value: dictRoleName,
+        },
+        {
+          name: '登録絵文字数',
+          value: numberOfEmojis.toString(),
+        },
+        {
+          name: '登録単語数',
+          value: numberOfDictEntries.toString(),
         },
       ],
     });
