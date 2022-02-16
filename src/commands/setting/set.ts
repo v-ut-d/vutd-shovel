@@ -33,7 +33,7 @@ export const data: ApplicationCommandSubCommandData = {
         'ギルド絵文字・Unicode絵文字を読み上げるかどうか設定します。',
     },
     {
-      name: 'omit_threashold',
+      name: 'omit_threshold',
       type: 'INTEGER',
       description: '「以下略」にならない最長のメッセージの長さを設定します。',
       minValue: 0,
@@ -62,8 +62,8 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
       readMultiLine:
         interaction.options.getBoolean('read_multiline') ?? undefined,
       readEmojis: interaction.options.getBoolean('read_emojis') ?? undefined,
-      omitThreashold:
-        interaction.options.getInteger('omit_threashold') ?? undefined,
+      omitThreshold:
+        interaction.options.getInteger('omit_threshold') ?? undefined,
     };
 
     const setting_written = await prisma.guildSettings.upsert({

@@ -39,7 +39,7 @@ export default class SettingMessageEmbed extends BaseMessageEmbed {
         },
         {
           name: '読み上げ文字数上限',
-          value: setting.omitThreashold.toString(),
+          value: setting.omitThreshold.toString(),
         },
         {
           name: '辞書書き込みロール',

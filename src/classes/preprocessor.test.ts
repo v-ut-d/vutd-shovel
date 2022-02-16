@@ -27,7 +27,7 @@ const defaultGuildSettings = {
   readSpeakersName: false, //unused
   readMultiLine: true,
   readEmojis: true,
-  omitThreashold: 100,
+  omitThreshold: 100,
 };
 
 describe('Test Preprocessor', () => {
