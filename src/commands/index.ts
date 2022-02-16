@@ -7,6 +7,7 @@ import * as end from './end';
 import * as start from './start';
 import * as voice from './voice';
 import * as dict from './dict';
+import * as setting from './setting';
 
 /**
  * registers slash commands.
@@ -14,7 +15,7 @@ import * as dict from './dict';
 export async function register(client: Client<true>) {
   const guild = await getGuild(client);
   await Promise.all(
-    [start, end, cancel, voice, dict, emojiBulk, dictBulk].map((e) =>
+    [start, end, cancel, voice, dict, setting, emojiBulk, dictBulk].map((e) =>
       guild.commands
         .create(e.data)
         .then((command) => command.permissions.add(e))
@@ -42,6 +43,8 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
       return voice.handle(interaction);
     case 'dict':
       return dict.handle(interaction);
+    case 'setting':
+      return setting.handle(interaction);
     case 'emoji-bulk':
       return emojiBulk.handle(interaction);
     case 'dict-bulk':
