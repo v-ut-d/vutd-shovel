@@ -130,10 +130,10 @@ export default class Preprocessor {
       .replace(...ENGLISH_WORD_REPLACER)
       .replace(...WARA_REPLACER)
       .replace(...NEWLINE_SPACE_REPLACER);
-    if (this.room.guildSettings?.omitThreashold) {
+    if (this.room.guildSettings) {
       replaced = OMIT_REPLACER_FN(
         replaced,
-        this.room.guildSettings.omitThreashold
+        this.room.guildSettings.omitThreshold
       );
     } else {
       replaced = OMIT_REPLACER_FN(replaced, 200);
