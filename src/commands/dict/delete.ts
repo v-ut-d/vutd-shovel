@@ -49,17 +49,41 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
           )
         );
 
+      const room = rooms.get(interaction.guildId);
+      if (room) {
+        await room.reloadEmojiDict();
+      }
+
       const toWord = emoji.pronounciation;
       await interaction.reply({
         embeds: [new DictMessageEmbed('delete', fromWord, toWord)],
       });
     } else {
-      throw new Error('絵文字以外の単語登録は実装されていません。');
-    }
+      const entry = await prisma.guildDictionary
+        .delete({
+          where: {
+            guildId_replaceFrom: {
+              guildId: interaction.guildId,
+              replaceFrom: fromWord,
+            },
+          },
+        })
+        .catch(() =>
+          Promise.reject(
+            'データベースからの削除に失敗しました。' +
+              '単語が登録されているかどうか確認してください。'
+          )
+        );
 
-    const room = rooms.get(interaction.guildId);
-    if (room) {
-      await room.reloadEmojiDict();
+      const room = rooms.get(interaction.guildId);
+      if (room) {
+        await room.reloadGuildDict();
+      }
+
+      const toWord = entry.replaceTo;
+      await interaction.reply({
+        embeds: [new DictMessageEmbed('delete', fromWord, toWord)],
+      });
     }
   } catch (e) {
     await interaction.reply({
