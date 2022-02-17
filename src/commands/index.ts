@@ -1,3 +1,4 @@
+import type { GuildSettings } from '@prisma/client';
 import type {
   ApplicationCommand,
   ApplicationCommandPermissions,
@@ -6,6 +7,7 @@ import type {
   Snowflake,
 } from 'discord.js';
 import { Collection } from 'discord.js';
+import { prisma } from '../database';
 import { CallOrReturn, env } from '../utils';
 import * as cancel from './cancel';
 import * as dict from './dict';
@@ -23,8 +25,9 @@ type ApplicationCommands = Collection<
   ApplicationCommand | Collection<Snowflake, ApplicationCommand>
 >;
 
-export type PermissionSetterFunction = () => // guildSettings: GuildSettings
-ApplicationCommandPermissions[];
+export type PermissionSetterFunction = (
+  guildSettings: GuildSettings
+) => ApplicationCommandPermissions[];
 
 const appCommands: ApplicationCommands = new Collection();
 
@@ -74,13 +77,39 @@ export async function register(client: Client<true>) {
   //Set Command Permissions
   await Promise.all(
     oauth2guilds.map(async (guild_partial) => {
-      //TODO: fetch guild permission settings
+      let _guildSettings: GuildSettings | null;
+      {
+        _guildSettings = await prisma.guildSettings.findUnique({
+          where: {
+            guildId: guild_partial.id,
+          },
+        });
+        if (!_guildSettings) {
+          const guild =
+            guilds?.find((g) => g.id === guild_partial.id) ??
+            (await guild_partial.fetch());
+          _guildSettings = await prisma.guildSettings.create({
+            data: {
+              guildId: guild.id,
+              dictionaryWriteRole: guild.roles.everyone.id,
+            },
+          });
+        }
+      }
+      const guildSettings = _guildSettings;
+
       await Promise.all(
         appCommands.map(async (c, s) => {
           const permissions = perms.get(s);
           if (!permissions) return;
           if (!c) return;
-          await setPermission(c, client, guild_partial.id, permissions);
+          await setPermission(
+            c,
+            client,
+            guild_partial.id,
+            permissions,
+            guildSettings
+          );
         })
       );
     })
@@ -107,32 +136,34 @@ export async function setPermissionBySymbol(
   s: symbol,
   client: Client<true>,
   guildId: Snowflake,
-  permissions: PermissionSetterFunction | ApplicationCommandPermissions[]
+  permissions: PermissionSetterFunction | ApplicationCommandPermissions[],
+  guildSettings: GuildSettings
 ) {
   const c = appCommands.get(s);
   if (!c) return Promise.reject('No such command found.');
-  return setPermission(c, client, guildId, permissions);
+  return setPermission(c, client, guildId, permissions, guildSettings);
 }
 
 async function setPermission(
   c: ApplicationCommand | Collection<string, ApplicationCommand>,
   client: Client<true>,
   guildId: Snowflake,
-  permissions: PermissionSetterFunction | ApplicationCommandPermissions[]
+  permissions: PermissionSetterFunction | ApplicationCommandPermissions[],
+  guildSettings: GuildSettings
 ) {
   if ('id' in c) {
     //Production: ApplicationCommand
     await client.application.commands.permissions.set({
       guild: guildId,
       command: c,
-      permissions: CallOrReturn(permissions),
+      permissions: CallOrReturn(permissions, guildSettings),
     });
   } else {
     //Development: Collection<Snowflake, ApplicationCommand>
     await Promise.all(
       c.map(async (appCommand) => {
         await appCommand.permissions.set({
-          permissions: CallOrReturn(permissions),
+          permissions: CallOrReturn(permissions, guildSettings),
         });
       })
     );
