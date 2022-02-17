@@ -16,13 +16,11 @@ import * as end from './end';
 import * as start from './start';
 import * as voice from './voice';
 
-const commands = { start, end, cancel, voice, dict, emojiBulk, dictBulk };
-
-type CommandNames = keyof typeof commands;
+const commands = [start, end, cancel, voice, dict, emojiBulk, dictBulk];
 
 //Value: ApplicationCommand(in production) or Collection of ApplicationCommand with guildId as key(in development)
-type ApplicationCommands = Record<
-  CommandNames,
+type ApplicationCommands = Collection<
+  symbol,
   ApplicationCommand | Collection<Snowflake, ApplicationCommand>
 >;
 
@@ -34,7 +32,9 @@ export type PermissionSetterFunction = (
  * registers slash commands.
  */
 export async function register(client: Client<true>) {
-  const appCommands: Partial<ApplicationCommands> = {};
+  const appCommands: ApplicationCommands = new Collection();
+
+  const perms = new Collection(commands.map((t) => [t.s, t.permissions]));
 
   const oauth2guilds = await client.guilds.fetch();
   const guilds = env.production
@@ -45,26 +45,22 @@ export async function register(client: Client<true>) {
 
   //Register commands
   await Promise.all(
-    Object.keys(commands).map(async (e) => {
+    commands.map(async (e) => {
       if (env.production) {
-        const created = await client.application.commands.create(
-          commands[e as CommandNames].data
-        );
-        appCommands[e as CommandNames] = created;
+        const created = await client.application.commands.create(e.data);
+        appCommands.set(e.s, created);
       } else {
-        if (!guilds) {
+        const coll = appCommands.ensure(
+          e.s,
+          () => new Collection<Snowflake, ApplicationCommand>()
+        );
+        if (!guilds || 'id' in coll) {
           //This should not happen.
           return;
         }
-        const coll = (appCommands[e as CommandNames] = new Collection<
-          Snowflake,
-          ApplicationCommand
-        >());
         await Promise.all(
           guilds.map(async (guild) => {
-            const created = await guild.commands.create(
-              commands[e as CommandNames].data
-            );
+            const created = await guild.commands.create(e.data);
             coll.set(guild.id, created);
           })
         );
@@ -77,22 +73,25 @@ export async function register(client: Client<true>) {
     oauth2guilds.map(async (guild_partial) => {
       //TODO: fetch guild permission settings
       await Promise.all(
-        Object.keys(appCommands).map(async (e) => {
-          const c = appCommands[e as CommandNames];
+        appCommands.map(async (c, s) => {
           if (!c) return;
           if ('id' in c) {
             //Production: ApplicationCommand
+            const permissions = perms.get(s);
+            if (!permissions) return;
             await client.application.commands.permissions.set({
               guild: guild_partial.id,
               command: c,
-              permissions: commands[e as CommandNames].permissions,
+              permissions,
             });
           } else {
             //Development: Collection<Snowflake, ApplicationCommand>
             await Promise.all(
               c.map(async (appCommand) => {
+                const permissions = perms.get(s);
+                if (!permissions) return;
                 await appCommand.permissions.set({
-                  permissions: commands[e as CommandNames].permissions,
+                  permissions,
                 });
               })
             );
