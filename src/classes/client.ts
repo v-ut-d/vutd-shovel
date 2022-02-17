@@ -75,8 +75,9 @@ export default class ClientManager {
     const c = this.#getClientArray(guildId);
     console.log('free:', client.user?.username);
     if (
-      this.primaryClient === client ||
-      this.secondaryClients.some((c) => c === client)
+      (this.primaryClient === client ||
+        this.secondaryClients.some((c) => c === client)) &&
+      c.every((t) => t.user?.id !== client.user?.id)
     ) {
       c.push(client);
     }

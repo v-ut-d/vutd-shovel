@@ -220,7 +220,12 @@ export default class Room {
    * disconnects from voice channel and stop collecting messages.
    */
   destroy() {
-    this.#connection?.destroy();
+    if (
+      this.#connection &&
+      this.#connection.state.status !== VoiceConnectionStatus.Destroyed
+    ) {
+      this.#connection.destroy();
+    }
     this.#messageCollector.stop();
     if (this.allocatedClient) {
       clientManager.freeClient(this.guildId, this.allocatedClient);
