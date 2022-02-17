@@ -5,6 +5,8 @@ import type {
 } from 'discord.js';
 import rooms from '../rooms';
 
+export const s = Symbol('cancel');
+
 /**
  * `/cancel` command data.
  */

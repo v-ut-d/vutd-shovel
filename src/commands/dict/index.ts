@@ -7,6 +7,8 @@ import * as get from './get';
 import * as set from './set';
 import * as del from './delete';
 
+export const s = Symbol('dict');
+
 /**
  * `/dict` command data.
  */

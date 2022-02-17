@@ -7,6 +7,8 @@ import * as get from './get';
 import * as random from './random';
 import * as set from './set';
 
+export const s = Symbol('voice');
+
 /**
  * `/voice` command data.
  */

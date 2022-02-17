@@ -6,6 +6,8 @@ import type {
 import rooms from '../rooms';
 import { EndMessageEmbed, ErrorMessageEmbed } from '../components';
 
+export const s = Symbol('end');
+
 /**
  * `/end` command data.
  */

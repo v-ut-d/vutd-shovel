@@ -7,6 +7,8 @@ import { env } from '../../utils';
 import * as export_ from './export';
 import * as import_ from './import';
 
+export const s = Symbol('dict-bulk');
+
 const { MANAGE_ID } = env;
 
 /**
