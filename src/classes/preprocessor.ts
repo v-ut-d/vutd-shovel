@@ -9,12 +9,12 @@ const TO_BE_ESCAPED = '\\*+.?{}()[]^$-|/';
 const URL_REPLACER = [
   // eslint-disable-next-line no-irregular-whitespace
   /https?:\/\/[^\s　]*/g,
-  'URL省略\n',
+  'URL省略 ',
 ] as const;
 
-const CODEBLOCK_REPLACER = [/```.*?```/gs, 'コードブロック\n'] as const;
+const CODEBLOCK_REPLACER = [/```.*?```/gs, 'コードブロック '] as const;
 
-const SPOILER_REPLACER = [/\|\|.*?\|\|/g, '\n'] as const;
+const SPOILER_REPLACER = [/\|\|.*?\|\|/g, ' '] as const;
 
 const GUILD_EMOJI_REPLACER = (dict: Collection<string, string>) =>
   [
@@ -49,7 +49,9 @@ const WARA_REPLACER = [
   (str: string) => (str.length > 1 ? 'わらわら' : 'わら'),
 ] as const;
 
-const OMIT_REPLACER = [/^(.{100}).+$/s, '$1\n以下略'] as const;
+const NEWLINE_SPACE_REPLACER = [/[\n\r\s]/g, ' '] as const;
+
+const OMIT_REPLACER = [/^(.{100}).+$/s, '$1 以下略'] as const;
 
 /**
  * Preprocessor that is used before Open JTalk synthesizes voice.
@@ -58,10 +60,14 @@ const OMIT_REPLACER = [/^(.{100}).+$/s, '$1\n以下略'] as const;
 export default class Preprocessor {
   #guildEmojiDict = new Collection<string, string>();
   #guildEmojiReplacer = GUILD_EMOJI_REPLACER(this.#guildEmojiDict);
+  #guildDict = new Collection<string, string>();
   dictLoadPromise;
 
   constructor(readonly room: Room) {
-    this.dictLoadPromise = this.loadEmojiDict();
+    this.dictLoadPromise = Promise.all([
+      this.loadEmojiDict(),
+      this.loadGuildDict(),
+    ]);
   }
 
   /**
@@ -82,19 +88,36 @@ export default class Preprocessor {
     });
   }
 
+  async loadGuildDict() {
+    const dict = await prisma.guildDictionary.findMany({
+      where: {
+        guildId: this.room.guildId,
+      },
+    });
+    this.#guildDict.clear();
+    dict.forEach((entry) => {
+      this.#guildDict.set(entry.replaceFrom, entry.replaceTo);
+    });
+  }
+
   /**
    * preprocesses the string.
    */
   exec(content: string): string {
-    return content
+    let replaced_temp = content
       .replace(...URL_REPLACER)
       .replace(...CODEBLOCK_REPLACER)
       .replace(...SPOILER_REPLACER)
-      .replace(...this.#guildEmojiReplacer)
+      .replace(...this.#guildEmojiReplacer);
+    this.#guildDict.forEach((value, key) => {
+      replaced_temp = replaced_temp.replaceAll(key, value);
+    });
+    return replaced_temp
       .replace(...UNICODE_EMOJI_REPLACER)
       .replace(...CAMEL_CASE_REPLACER)
       .replace(...ENGLISH_WORD_REPLACER)
       .replace(...WARA_REPLACER)
+      .replace(...NEWLINE_SPACE_REPLACER)
       .replace(...OMIT_REPLACER);
   }
 }

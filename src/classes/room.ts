@@ -101,7 +101,9 @@ export default class Room {
 
     this.#messageCollector = textChannel.createMessageCollector({
       filter: (message) =>
-        message.cleanContent !== '' && !message.cleanContent.startsWith(';'),
+        message.cleanContent !== '' &&
+        !message.cleanContent.startsWith(';') &&
+        !message.author.bot,
     });
 
     this.#joinVCPromise = this.#joinVC(this.#player);
@@ -178,25 +180,7 @@ export default class Room {
     let speaker = this.getSpeaker(user.id);
     if (!speaker) {
       speaker = new Speaker(user, true);
-      const options = await prisma.member.findUnique({
-        where: {
-          guildId_userId: {
-            guildId: this.guildId,
-            userId: user.id,
-          },
-        },
-      });
-      if (options) {
-        speaker.options = options;
-      } else {
-        await prisma.member.create({
-          data: {
-            guildId: this.guildId,
-            userId: user.id,
-            ...speaker.options,
-          },
-        });
-      }
+      await speaker.fetchOptions(this.guildId);
       this.#speakers.set(user.id, speaker);
     }
     return speaker;
@@ -204,6 +188,21 @@ export default class Room {
 
   async reloadEmojiDict() {
     await this.#preprocessor.loadEmojiDict();
+  }
+
+  async reloadSpeakOptions(user?: User) {
+    if (user) {
+      await this.#speakers.get(user.id)?.fetchOptions(this.guildId);
+    } else {
+      await Promise.all(
+        this.#speakers.map((speaker) => {
+          speaker.fetchOptions(this.guildId);
+        })
+      );
+    }
+  }
+  async reloadGuildDict() {
+    await this.#preprocessor.loadGuildDict();
   }
 
   #play() {

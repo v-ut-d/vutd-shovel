@@ -68,7 +68,31 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
         await roomCollection.each((room) => room.reloadEmojiDict());
       }
     } else {
-      throw new Error('絵文字以外の単語登録は実装されていません。');
+      await prisma.guildDictionary
+        .upsert({
+          where: {
+            guildId_replaceFrom: {
+              guildId: interaction.guildId,
+              replaceFrom: fromWord,
+            },
+          },
+          update: {
+            replaceTo: toWord,
+          },
+          create: {
+            guildId: interaction.guildId,
+            replaceFrom: fromWord,
+            replaceTo: toWord,
+          },
+        })
+        .catch(() => {
+          throw new Error('データベースへの登録に失敗しました。');
+        });
+
+      const roomCollection = rooms.get(interaction.guildId);
+      if (roomCollection) {
+        await roomCollection.each((room) => room.reloadGuildDict());
+      }
     }
     await interaction.reply({
       embeds: [new DictMessageEmbed('set', fromWord, toWord)],
