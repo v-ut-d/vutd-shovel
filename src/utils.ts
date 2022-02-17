@@ -16,3 +16,12 @@ export const env = readenv({
     parse: (s) => s === 'production',
   },
 });
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type COR_Args<T> = T extends (...args: any) => any ? Parameters<T> : never;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type COR_Return<T> = T extends (...args: any) => any ? ReturnType<T> : T;
+
+export function CallOrReturn<T>(val: T, ...args: COR_Args<T>): COR_Return<T> {
+  return typeof val === 'function' ? val(...(args as unknown[])) : val;
+}
