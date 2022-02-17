@@ -1,15 +1,10 @@
-import type {
-  ApplicationCommandData,
-  ApplicationCommandPermissions,
-  CommandInteraction,
-} from 'discord.js';
-import { env } from '../../utils';
+import type { GuildSettings } from '@prisma/client';
+import type { ApplicationCommandData, CommandInteraction } from 'discord.js';
+import type { PermissionSetterFunction } from '..';
 import * as export_ from './export';
 import * as import_ from './import';
 
 export const s = Symbol('dict-bulk');
-
-const { MANAGE_ID } = env;
 
 /**
  * `/dict-bulk` command data.
@@ -24,13 +19,19 @@ export const data: ApplicationCommandData = {
 /**
  * `/dict-bulk` command permission data.
  */
-export const permissions: ApplicationCommandPermissions[] = [
-  {
-    type: 'ROLE',
-    id: MANAGE_ID,
-    permission: true,
-  },
-];
+export const permissions: PermissionSetterFunction = (
+  guildSettings: GuildSettings
+) => {
+  return guildSettings.manageRole
+    ? [
+        {
+          type: 'ROLE',
+          id: guildSettings.manageRole,
+          permission: true,
+        },
+      ]
+    : [];
+};
 
 /**
  * handles `/dict-bulk` subcommands.
