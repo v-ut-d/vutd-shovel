@@ -48,9 +48,11 @@ export async function register(client: Client<true>) {
   await Promise.all(
     commands.map(async (e) => {
       if (env.production) {
+        //Global Command
         const created = await client.application.commands.create(e.data);
         appCommands.set(e.s, created);
       } else {
+        //Guild Command
         const coll = appCommands.ensure(
           e.s,
           () => new Collection<Snowflake, ApplicationCommand>()
