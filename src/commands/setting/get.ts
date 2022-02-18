@@ -56,13 +56,12 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
 
     await interaction.reply({
       embeds: [
-        new SettingMessageEmbed(
-          'get',
-          setting,
+        new SettingMessageEmbed('get', {
+          setting: setting,
           dictRoleName,
           numberOfEmojis,
-          numberOfDictEntries
-        ),
+          numberOfDictEntries,
+        }),
       ],
     });
   } catch (e) {

@@ -108,13 +108,12 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
 
     await interaction.reply({
       embeds: [
-        new SettingMessageEmbed(
-          'set',
-          setting_written,
+        new SettingMessageEmbed('set', {
+          setting: setting_written,
           dictRoleName,
           numberOfEmojis,
-          numberOfDictEntries
-        ),
+          numberOfDictEntries,
+        }),
       ],
     });
   } catch (e) {
