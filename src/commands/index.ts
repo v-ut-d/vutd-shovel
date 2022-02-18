@@ -52,12 +52,9 @@ export async function register(client: Client<true>) {
     ApplicationCommandPermissions[] | PermissionSetterFunction
   >(commands.map((t) => [t.s, t.permissions]));
 
-  const oauth2guilds = await client.guilds.fetch();
-  const guilds = env.production
-    ? undefined
-    : await Promise.all(
-        oauth2guilds.map((guild_partial) => guild_partial.fetch())
-      );
+  const guilds = await Promise.all(
+    (await client.guilds.fetch()).map((guild_partial) => guild_partial.fetch())
+  );
 
   //Register commands
   await Promise.all(
@@ -88,18 +85,15 @@ export async function register(client: Client<true>) {
 
   //Set Command Permissions
   await Promise.all(
-    oauth2guilds.map(async (guild_partial) => {
+    guilds.map(async (guild) => {
       let _guildSettings: GuildSettings | null;
       {
         _guildSettings = await prisma.guildSettings.findUnique({
           where: {
-            guildId: guild_partial.id,
+            guildId: guild.id,
           },
         });
         if (!_guildSettings) {
-          const guild =
-            guilds?.find((g) => g.id === guild_partial.id) ??
-            (await guild_partial.fetch());
           _guildSettings = await prisma.guildSettings.create({
             data: {
               guildId: guild.id,
