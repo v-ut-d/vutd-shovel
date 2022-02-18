@@ -1,4 +1,6 @@
 import {
+  createAudioResource,
+  StreamType,
   AudioPlayer,
   AudioPlayerStatus,
   AudioResource,
@@ -21,7 +23,7 @@ import {
 import { Preprocessor, Speaker } from '.';
 import { EndMessageEmbed } from '../components';
 import { prisma } from '../database';
-
+import type { Readable } from 'stream';
 /**
  * represents one reading session.
  * exists at most 1 per {@link Guild}.
@@ -40,7 +42,9 @@ export default class Room {
 
   #connection: VoiceConnection;
   #messageCollector: MessageCollector;
-  #queue: AudioResource[] = [];
+  #synthesizing = 0;
+  #synthesisQueue: (() => Readable)[] = [];
+  #playQueue: AudioResource[] = [];
   #player: AudioPlayer;
   #preprocessor: Preprocessor;
   #speakers: Collection<Snowflake, Speaker> = new Collection();
@@ -122,11 +126,11 @@ export default class Room {
         const guildMember = await this.guild.members.fetch(message.author);
         prefix = guildMember.displayName + ' ';
       }
-      const resource = speaker.synth(
-        this.#preprocessor.exec(prefix + message.cleanContent)
+      const preprocessed = this.#preprocessor.exec(
+        prefix + message.cleanContent
       );
-      this.#queue.push(resource);
-      this.#play();
+      this.#synthesisQueue.push(speaker.synth.bind(speaker, preprocessed));
+      this.#synth();
     });
 
     process.on('SIGINT', () => {
@@ -203,9 +207,27 @@ export default class Room {
     this.guildSettings = guildSettings;
   }
 
+  #synth() {
+    if (this.#synthesizing > 0) return;
+    const synth = this.#synthesisQueue.shift();
+    if (synth) {
+      this.#synthesizing += 1;
+      const stream = synth();
+      stream.once('data', () => {
+        this.#synthesizing -= 1;
+        this.#synth();
+      });
+      this.#playQueue.push(
+        createAudioResource(stream, {
+          inputType: StreamType.Raw,
+        })
+      );
+      this.#play();
+    }
+  }
   #play() {
     if (this.#player.state.status === AudioPlayerStatus.Idle) {
-      const resource = this.#queue.shift();
+      const resource = this.#playQueue.shift();
       if (resource) this.#player.play(resource);
     }
   }
@@ -218,7 +240,9 @@ export default class Room {
    * disconnects from voice channel and stop collecting messages.
    */
   destroy() {
-    this.#connection.destroy();
+    if (this.#connection.state.status !== VoiceConnectionStatus.Destroyed) {
+      this.#connection.destroy();
+    }
     this.#messageCollector.stop();
   }
 }
