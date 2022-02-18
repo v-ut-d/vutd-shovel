@@ -21,7 +21,20 @@ jest.mock('../database', () => {
 const pillow =
   '春はあけぼの。やうやう白くなりゆく山ぎは、すこしあかりて、紫だちたる 雲のほそくたなびきたる。　夏は夜。月のころはさらなり。やみもなほ、蛍の多く飛びちがひたる。また、 ただ一つ二つなど、ほのかにうち光りて行くもをかし';
 
+const defaultGuildSettings = {
+  guildId: '', //unused
+  dictionaryWriteRole: '', //unused
+  readSpeakersName: false, //unused
+  readMultiLine: true,
+  readEmojis: true,
+  omitThreshold: 100,
+};
+
 describe('Test Preprocessor', () => {
+  beforeEach(() => {
+    RoomMock.mockReset();
+    preprocessor.room.guildSettings = { ...defaultGuildSettings };
+  });
   const preprocessor = new Preprocessor(new RoomMock());
 
   it('Replaces English words to Katakana', () => {
@@ -155,5 +168,20 @@ describe('Test Preprocessor', () => {
         pillow.substring(0, 89).replace('　', ' ') +
         ' 以下略'
     );
+  });
+
+  it('readMultiLine setting is valid', () => {
+    preprocessor.room.guildSettings ??= defaultGuildSettings;
+    preprocessor.room.guildSettings.readMultiLine = true;
+    expect(preprocessor.exec('a,\nb')).toBe('a, b');
+    preprocessor.room.guildSettings.readMultiLine = false;
+    expect(preprocessor.exec('a,\nb')).toBe('a,');
+  });
+  it('readEmojis setting is valid', () => {
+    preprocessor.room.guildSettings ??= defaultGuildSettings;
+    preprocessor.room.guildSettings.readEmojis = true;
+    expect(preprocessor.exec('↑')).toBe('上向矢印');
+    preprocessor.room.guildSettings.readEmojis = false;
+    expect(preprocessor.exec('↑')).toBe('↑');
   });
 });

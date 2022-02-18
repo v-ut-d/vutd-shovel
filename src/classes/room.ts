@@ -10,6 +10,7 @@ import {
   VoiceConnection,
   VoiceConnectionStatus,
 } from '@discordjs/voice';
+import type { GuildSettings } from '@prisma/client';
 import {
   Collection,
   Guild,
@@ -47,6 +48,9 @@ export default class Room {
   #player: AudioPlayer;
   #preprocessor: Preprocessor;
   #speakers: Collection<Snowflake, Speaker> = new Collection();
+  guildSettings?: GuildSettings;
+
+  #loadGuildSettingsPromise;
 
   constructor(
     /**
@@ -83,6 +87,8 @@ export default class Room {
 
     this.#preprocessor = new Preprocessor(this);
 
+    this.#loadGuildSettingsPromise = this.loadGuildSettings();
+
     voiceChannel.client.on('voiceStateUpdate', async (oldState, newState) => {
       if (
         oldState.guild.id === voiceChannel.guildId &&
@@ -113,8 +119,16 @@ export default class Room {
     });
 
     this.#messageCollector.on('collect', async (message) => {
+      if (!this.guildSettings) return;
       const speaker = await this.getOrCreateSpeaker(message.author);
-      const preprocessed = this.#preprocessor.exec(message.cleanContent);
+      let prefix = '';
+      if (this.guildSettings.readSpeakersName) {
+        const guildMember = await this.guild.members.fetch(message.author);
+        prefix = guildMember.displayName + ' ';
+      }
+      const preprocessed = this.#preprocessor.exec(
+        prefix + message.cleanContent
+      );
       this.#synthesisQueue.push(speaker.synth.bind(speaker, preprocessed));
       this.#synth();
     });
@@ -134,6 +148,7 @@ export default class Room {
     await Promise.all([
       entersState(this.#connection, VoiceConnectionStatus.Ready, 2000),
       this.#preprocessor.dictLoadPromise,
+      this.#loadGuildSettingsPromise,
     ]);
     return;
   }
@@ -176,6 +191,20 @@ export default class Room {
 
   async reloadGuildDict() {
     await this.#preprocessor.loadGuildDict();
+  }
+
+  async loadGuildSettings() {
+    const guildSettings = await prisma.guildSettings.upsert({
+      where: {
+        guildId: this.guildId,
+      },
+      create: {
+        guildId: this.guildId,
+        dictionaryWriteRole: this.guild.roles.everyone.id,
+      },
+      update: {},
+    });
+    this.guildSettings = guildSettings;
   }
 
   #synth() {

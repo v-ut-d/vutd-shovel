@@ -6,6 +6,8 @@ import emoji from '../data/emoji.json';
 
 const TO_BE_ESCAPED = '\\*+.?{}()[]^$-|/';
 
+const MULTILINE_REPLACER = [/\n.*/s, ''] as const;
+
 const URL_REPLACER = [
   // eslint-disable-next-line no-irregular-whitespace
   /https?:\/\/[^\s　]*/g,
@@ -51,7 +53,8 @@ const WARA_REPLACER = [
 
 const NEWLINE_SPACE_REPLACER = [/[\n\r\s]/g, ' '] as const;
 
-const OMIT_REPLACER = [/^(.{100}).+$/s, '$1 以下略'] as const;
+const OMIT_REPLACER_FN = (str: string, threshold: number) =>
+  str.length <= threshold ? str : str.substring(0, threshold) + ' 以下略';
 
 /**
  * Preprocessor that is used before Open JTalk synthesizes voice.
@@ -60,6 +63,7 @@ const OMIT_REPLACER = [/^(.{100}).+$/s, '$1 以下略'] as const;
 export default class Preprocessor {
   #guildEmojiDict = new Collection<string, string>();
   #guildEmojiReplacer = GUILD_EMOJI_REPLACER(this.#guildEmojiDict);
+
   #guildDict = new Collection<string, string>();
   dictLoadPromise;
 
@@ -104,20 +108,36 @@ export default class Preprocessor {
    * preprocesses the string.
    */
   exec(content: string): string {
-    let replaced_temp = content
+    let replaced = content;
+    if (this.room.guildSettings?.readMultiLine === false) {
+      replaced = replaced.replace(...MULTILINE_REPLACER);
+    }
+    replaced = replaced
       .replace(...URL_REPLACER)
       .replace(...CODEBLOCK_REPLACER)
-      .replace(...SPOILER_REPLACER)
-      .replace(...this.#guildEmojiReplacer);
+      .replace(...SPOILER_REPLACER);
+    if (this.room.guildSettings?.readEmojis === true) {
+      replaced = replaced.replace(...this.#guildEmojiReplacer);
+    }
     this.#guildDict.forEach((value, key) => {
-      replaced_temp = replaced_temp.replaceAll(key, value);
+      replaced = replaced.replaceAll(key, value);
     });
-    return replaced_temp
-      .replace(...UNICODE_EMOJI_REPLACER)
+    if (this.room.guildSettings?.readEmojis === true) {
+      replaced = replaced.replace(...UNICODE_EMOJI_REPLACER);
+    }
+    replaced = replaced
       .replace(...CAMEL_CASE_REPLACER)
       .replace(...ENGLISH_WORD_REPLACER)
       .replace(...WARA_REPLACER)
-      .replace(...NEWLINE_SPACE_REPLACER)
-      .replace(...OMIT_REPLACER);
+      .replace(...NEWLINE_SPACE_REPLACER);
+    if (this.room.guildSettings) {
+      replaced = OMIT_REPLACER_FN(
+        replaced,
+        this.room.guildSettings.omitThreshold
+      );
+    } else {
+      replaced = OMIT_REPLACER_FN(replaced, 200);
+    }
+    return replaced;
   }
 }

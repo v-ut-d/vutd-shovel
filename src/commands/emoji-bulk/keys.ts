@@ -2,7 +2,6 @@ import type {
   ApplicationCommandSubCommandData,
   CommandInteraction,
 } from 'discord.js';
-import fs from 'fs';
 import { EmojiBulkMessageEmbed, ErrorMessageEmbed } from '../../components';
 import { prisma } from '../../database';
 
@@ -33,15 +32,16 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
       .filter((_, id) => !emojisDb.some((emoji) => emoji.emojiId === id))
       .map((emoji) => `${emoji}, `);
     const csv = rows.join('\n');
-    const fileName = `dictionary/${interaction.guildId}_keys.dict`;
-    fs.writeFileSync(fileName, csv, 'utf-8');
 
     await interaction.reply({
       embeds: [new EmojiBulkMessageEmbed('keys', rows.length)],
-      files: [fileName],
+      files: [
+        {
+          attachment: Buffer.from(csv),
+          name: `${interaction.guildId}_keys.dict`,
+        },
+      ],
     });
-
-    fs.rmSync(fileName);
   } catch (e) {
     await interaction.reply({
       embeds: [new ErrorMessageEmbed('辞書設定', e)],
