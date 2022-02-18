@@ -22,7 +22,7 @@ import {
 import { Preprocessor, Speaker } from '.';
 import { EndMessageEmbed } from '../components';
 import { prisma } from '../database';
-
+import type { Readable } from 'stream';
 /**
  * represents one reading session.
  * exists at most 1 per {@link Guild}.
@@ -42,7 +42,7 @@ export default class Room {
   #connection: VoiceConnection;
   #messageCollector: MessageCollector;
   #synthesizing = 0;
-  #synthesisQueue: (() => ReturnType<Speaker['synth']>)[] = [];
+  #synthesisQueue: (() => Readable)[] = [];
   #playQueue: AudioResource[] = [];
   #player: AudioPlayer;
   #preprocessor: Preprocessor;
