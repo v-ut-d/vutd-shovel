@@ -28,30 +28,37 @@ export default class SettingMessageEmbed extends BaseMessageEmbed {
         {
           name: '複数行読み上げ',
           value: setting.readMultiLine ? 'ON' : 'OFF',
+          inline: true,
         },
         {
           name: '名前読み上げ',
           value: setting.readSpeakersName ? 'ON' : 'OFF',
+          inline: true,
         },
         {
           name: '絵文字読み上げ',
           value: setting.readEmojis ? 'ON' : 'OFF',
+          inline: true,
         },
         {
           name: '読み上げ文字数上限',
           value: setting.omitThreshold.toString(),
+          inline: true,
         },
         {
           name: '辞書書き込みロール',
           value: dictRoleName,
+          inline: true,
         },
         {
           name: '登録絵文字数',
           value: numberOfEmojis.toString(),
+          inline: true,
         },
         {
           name: '登録単語数',
           value: numberOfDictEntries.toString(),
+          inline: true,
         },
       ],
     });
