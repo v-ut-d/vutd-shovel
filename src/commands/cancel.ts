@@ -10,7 +10,7 @@ import rooms from '../rooms';
  */
 export const data: ApplicationCommandData = {
   name: 'cancel',
-  description: '読み上げを終了します。',
+  description: '今行っている読み上げを中断します。',
 };
 
 /**
