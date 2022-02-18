@@ -41,7 +41,7 @@ export default class Room {
 
   #connection: VoiceConnection;
   #messageCollector: MessageCollector;
-  #synthesisQueue = new Promise<void>((resolve) => resolve());
+  #synthesisQueue = Promise.resolve();
   #speakQueue: AudioResource[] = [];
   #player: AudioPlayer;
   #preprocessor: Preprocessor;
