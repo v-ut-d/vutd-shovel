@@ -42,7 +42,7 @@ model GuildSettings {
   readMultiLine       Boolean @default(true)
   readSpeakersName    Boolean @default(false)
   readEmojis          Boolean @default(true)
-  omitThreashold      Int     @default(200)
+  omitThreshold       Int     @default(200)
   dictionaryWriteRole String
   manageRole          String?
 }

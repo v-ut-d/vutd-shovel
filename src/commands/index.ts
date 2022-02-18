@@ -10,14 +10,26 @@ import { Collection } from 'discord.js';
 import { prisma } from '../database';
 import { CallOrReturn, env } from '../utils';
 import * as cancel from './cancel';
-import * as dict from './dict';
 import * as dictBulk from './dict-bulk';
 import * as emojiBulk from './emoji-bulk';
 import * as end from './end';
 import * as start from './start';
 import * as voice from './voice';
+import * as dict from './dict';
+import * as setting from './setting';
+import * as help from './help';
 
-const commands = [start, end, cancel, voice, dict, emojiBulk, dictBulk];
+const commands = [
+  start,
+  end,
+  cancel,
+  voice,
+  dict,
+  help,
+  setting,
+  emojiBulk,
+  dictBulk,
+];
 
 //Value: ApplicationCommand(in production) or Collection of ApplicationCommand with guildId as key(in development)
 type ApplicationCommands = Collection<
@@ -185,6 +197,10 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
       return voice.handle(interaction);
     case 'dict':
       return dict.handle(interaction);
+    case 'setting':
+      return setting.handle(interaction);
+    case 'help':
+      return help.handle(interaction);
     case 'emoji-bulk':
       return emojiBulk.handle(interaction);
     case 'dict-bulk':
