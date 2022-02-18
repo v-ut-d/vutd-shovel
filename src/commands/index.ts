@@ -4,6 +4,8 @@ import type {
   ApplicationCommandPermissions,
   Client,
   CommandInteraction,
+  Guild,
+  OAuth2Guild,
   Snowflake,
 } from 'discord.js';
 import { Collection } from 'discord.js';
@@ -39,8 +41,8 @@ type ApplicationCommands = Collection<
 
 export type PermissionSetterFunction = (
   guildSettings: GuildSettings,
-  everyoneRole: Snowflake
-) => ApplicationCommandPermissions[];
+  guild: OAuth2Guild | Guild
+) => ApplicationCommandPermissions[] | Promise<ApplicationCommandPermissions[]>;
 
 const appCommands: ApplicationCommands = new Collection();
 
@@ -53,9 +55,7 @@ export async function register(client: Client<true>) {
     ApplicationCommandPermissions[] | PermissionSetterFunction
   >(commands.map((t) => [t.s, t.permissions]));
 
-  const guilds = await Promise.all(
-    (await client.guilds.fetch()).map((guild_partial) => guild_partial.fetch())
-  );
+  const guilds = await client.guilds.fetch();
 
   //Register commands
   await Promise.all(
@@ -76,7 +76,10 @@ export async function register(client: Client<true>) {
         }
         await Promise.all(
           guilds.map(async (guild) => {
-            const created = await guild.commands.create(e.data);
+            const created = await client.application.commands.create(
+              e.data,
+              guild.id
+            );
             coll.set(guild.id, created);
           })
         );
@@ -95,10 +98,11 @@ export async function register(client: Client<true>) {
           },
         });
         if (!_guildSettings) {
+          const g = await guild.fetch();
           _guildSettings = await prisma.guildSettings.create({
             data: {
               guildId: guild.id,
-              dictionaryWriteRole: guild.roles.everyone.id,
+              dictionaryWriteRole: g.roles.everyone.id,
             },
           });
         }
@@ -112,10 +116,9 @@ export async function register(client: Client<true>) {
           if (!c) return;
           await setPermission(c, {
             client,
-            guildId: guild.id,
+            guild,
             permissions,
             guildSettings,
-            everyoneRoleId: guild.roles.everyone.id,
           });
         })
       );
@@ -131,7 +134,7 @@ export async function register(client: Client<true>) {
       }
       await Promise.all(
         guilds.map(async (guild) => {
-          await guild.commands.set([]);
+          await client.application.commands.set([], guild.id);
         })
       );
     }
@@ -141,10 +144,9 @@ export async function register(client: Client<true>) {
 
 interface SetPermissionParameters {
   client: Client<true>;
-  guildId: Snowflake;
+  guild: OAuth2Guild | Guild;
   permissions: PermissionSetterFunction | ApplicationCommandPermissions[];
   guildSettings: GuildSettings;
-  everyoneRoleId: Snowflake;
 }
 
 export async function setPermissionBySymbol(
@@ -163,12 +165,12 @@ async function setPermission(
   if ('id' in c) {
     //Production: ApplicationCommand
     await param.client.application.commands.permissions.set({
-      guild: param.guildId,
+      guild: param.guild.id,
       command: c,
-      permissions: CallOrReturn(
+      permissions: await CallOrReturn(
         param.permissions,
         param.guildSettings,
-        param.everyoneRoleId
+        param.guild
       ),
     });
   } else {
@@ -176,10 +178,10 @@ async function setPermission(
     await Promise.all(
       c.map(async (appCommand) => {
         await appCommand.permissions.set({
-          permissions: CallOrReturn(
+          permissions: await CallOrReturn(
             param.permissions,
             param.guildSettings,
-            param.everyoneRoleId
+            param.guild
           ),
         });
       })

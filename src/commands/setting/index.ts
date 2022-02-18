@@ -1,8 +1,9 @@
 import {
   ApplicationCommandData,
   CommandInteraction,
+  Guild,
+  OAuth2Guild,
   Permissions,
-  Snowflake,
 } from 'discord.js';
 
 import * as get from './get';
@@ -28,10 +29,12 @@ export const data: ApplicationCommandData = {
 /**
  * `/setting` command permission data.
  */
-export const permissions: PermissionSetterFunction = (
+export const permissions: PermissionSetterFunction = async (
   guildSettings: GuildSettings,
-  everyone: Snowflake
+  guild: OAuth2Guild | Guild
 ) => {
+  const modRole =
+    guildSettings.moderatorRole ?? (await guild.fetch()).roles.everyone.id;
   return [
     {
       type: 'ROLE',
@@ -40,7 +43,7 @@ export const permissions: PermissionSetterFunction = (
        * set to everyone. Also moderatorRole is set by /setting, so /setting
        * should be accesible even when moderatorRole is null.
        */
-      id: guildSettings.moderatorRole ?? everyone,
+      id: modRole,
       permission: true,
     },
   ];

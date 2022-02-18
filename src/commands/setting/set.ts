@@ -122,9 +122,8 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
     //Renew permissions
     const permissionParams = {
       client: interaction.client,
-      guildId: interaction.guildId,
+      guild: interaction.guild,
       guildSettings: writtenSetting,
-      everyoneRoleId: interaction.guild.roles.everyone.id,
     };
     if (setting.moderatorRole) {
       Promise.all(
