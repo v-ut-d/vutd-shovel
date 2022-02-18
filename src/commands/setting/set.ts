@@ -2,10 +2,16 @@ import type {
   ApplicationCommandSubCommandData,
   CommandInteraction,
 } from 'discord.js';
+import { setPermissionBySymbol } from '..';
 import { ErrorMessageEmbed } from '../../components';
 import SettingMessageEmbed from '../../components/setting';
 import { prisma } from '../../database';
 import rooms from '../../rooms';
+
+import * as _setting from '.';
+import * as dictBulk from '../dict-bulk';
+import * as emojiBulk from '../emoji-bulk';
+import * as dict from '../dict';
 
 /**
  * `/setting set` command data.
@@ -40,10 +46,15 @@ export const data: ApplicationCommandSubCommandData = {
       maxValue: 10000,
     },
     {
-      name: 'dictionary_write_role',
+      name: 'moderator_role',
       type: 'ROLE',
       description:
-        '/dict set、/dict deleteを使えるユーザーのロールを指定します。',
+        '/dict-bulk、/emoji-bulk、/settingを使えるユーザーのロールを指定します。',
+    },
+    {
+      name: 'dictionary_write_role',
+      type: 'ROLE',
+      description: '/dictを使えるユーザーのロールを指定します。',
     },
   ],
 };
@@ -55,6 +66,8 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
   try {
     const setting = {
       guildId: interaction.guildId,
+      moderatorRole:
+        interaction.options.getRole('moderator_role')?.id ?? undefined,
       dictionaryWriteRole:
         interaction.options.getRole('dictionary_write_role')?.id ?? undefined,
       readSpeakersName:
@@ -105,6 +118,30 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
         guildId: interaction.guildId,
       },
     });
+
+    //Renew permissions
+    const permissionParams = {
+      client: interaction.client,
+      guildId: interaction.guildId,
+      guildSettings: writtenSetting,
+      everyoneRoleId: interaction.guild.roles.everyone.id,
+    };
+    if (setting.moderatorRole) {
+      Promise.all(
+        [_setting, dictBulk, emojiBulk].map(async ({ s, permissions }) =>
+          setPermissionBySymbol(s, {
+            ...permissionParams,
+            permissions,
+          })
+        )
+      );
+    }
+    if (setting.dictionaryWriteRole) {
+      setPermissionBySymbol(dict.s, {
+        ...permissionParams,
+        permissions: dict.permissions,
+      });
+    }
 
     await interaction.reply({
       embeds: [

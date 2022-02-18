@@ -1,17 +1,19 @@
-import type {
+import {
   ApplicationCommandData,
-  ApplicationCommandPermissions,
   CommandInteraction,
+  Permissions,
+  Snowflake,
 } from 'discord.js';
 
 import * as get from './get';
 import * as set from './set';
 
-import { env } from '../../utils';
+import type { PermissionSetterFunction } from '..';
+import type { GuildSettings } from '@prisma/client';
+import { prisma } from '../../database';
+import { ErrorMessageEmbed } from '../../components';
 
 export const s = Symbol('setting');
-
-const { MANAGE_ID } = env;
 
 /**
  * `/setting` command data.
@@ -26,18 +28,61 @@ export const data: ApplicationCommandData = {
 /**
  * `/setting` command permission data.
  */
-export const permissions: ApplicationCommandPermissions[] = [
-  {
-    type: 'ROLE',
-    id: MANAGE_ID,
-    permission: true,
-  },
-];
+export const permissions: PermissionSetterFunction = (
+  guildSettings: GuildSettings,
+  everyone: Snowflake
+) => {
+  return [
+    {
+      type: 'ROLE',
+      /*
+       * The handler of /settings checks the users' role, so permission can be
+       * set to everyone. Also moderatorRole is set by /setting, so /setting
+       * should be accesible even when moderatorRole is null.
+       */
+      id: guildSettings.moderatorRole ?? everyone,
+      permission: true,
+    },
+  ];
+};
 
 /**
  * handles `/setting` subcommands.
  */
 export async function handle(interaction: CommandInteraction<'cached'>) {
+  //Permission Check
+  const roleSetting = await prisma.guildSettings.findUnique({
+    where: {
+      guildId: interaction.guildId,
+    },
+    select: {
+      moderatorRole: true,
+    },
+  });
+  if (roleSetting?.moderatorRole) {
+    if (!interaction.member.roles.cache.has(roleSetting.moderatorRole)) {
+      //This should not happen.
+      const mod = await interaction.guild.roles.fetch(
+        roleSetting.moderatorRole
+      );
+      const message = `このサーバーでモデレーターロールとして設定されている${mod?.name}を持っている人だけが/settingを使用できます。`;
+      await interaction.reply({
+        embeds: [new ErrorMessageEmbed('サーバー設定', message)],
+      });
+      return;
+    }
+  } else {
+    if (!interaction.memberPermissions.has(Permissions.FLAGS.ADMINISTRATOR)) {
+      const message =
+        '現在このサーバーで管理者権限を持っている人だけが/settingを使用できます。' +
+        '/setting setでmoderator_roleを設定するとこれは上書きされます';
+      await interaction.reply({
+        embeds: [new ErrorMessageEmbed('サーバー設定', message)],
+      });
+      return;
+    }
+  }
+
   const subcommand = interaction.options.getSubcommand(true);
   switch (subcommand) {
     case 'get':
