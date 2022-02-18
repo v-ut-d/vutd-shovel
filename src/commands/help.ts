@@ -23,13 +23,6 @@ export const permissions: ApplicationCommandPermissions[] = [];
  */
 export async function handle(interaction: CommandInteraction<'cached'>) {
   try {
-    const textChannel = interaction.channel;
-    if (!textChannel)
-      throw new Error('テキストチャンネルを取得できませんでした。');
-
-    const me = interaction.guild.me;
-    if (!me) throw new Error('データを取得できませんでした。');
-
     await interaction.reply({
       embeds: [new HelpMessageEmbed()],
     });
