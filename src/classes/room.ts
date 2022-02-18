@@ -1,4 +1,6 @@
 import {
+  createAudioResource,
+  StreamType,
   AudioPlayer,
   AudioPlayerStatus,
   AudioResource,
@@ -39,7 +41,9 @@ export default class Room {
 
   #connection: VoiceConnection;
   #messageCollector: MessageCollector;
-  #queue: AudioResource[] = [];
+  #synthesizing = 0;
+  #synthesisQueue: (() => ReturnType<Speaker['synth']>)[] = [];
+  #playQueue: AudioResource[] = [];
   #player: AudioPlayer;
   #preprocessor: Preprocessor;
   #speakers: Collection<Snowflake, Speaker> = new Collection();
@@ -110,12 +114,9 @@ export default class Room {
 
     this.#messageCollector.on('collect', async (message) => {
       const speaker = await this.getOrCreateSpeaker(message.author);
-
-      const resource = speaker.synth(
-        this.#preprocessor.exec(message.cleanContent)
-      );
-      this.#queue.push(resource);
-      this.#play();
+      const preprocessed = this.#preprocessor.exec(message.cleanContent);
+      this.#synthesisQueue.push(speaker.synth.bind(speaker, preprocessed));
+      this.#synth();
     });
 
     process.on('SIGINT', () => {
@@ -177,9 +178,27 @@ export default class Room {
     await this.#preprocessor.loadGuildDict();
   }
 
+  #synth() {
+    if (this.#synthesizing > 0) return;
+    const synth = this.#synthesisQueue.shift();
+    if (synth) {
+      this.#synthesizing += 1;
+      const stream = synth();
+      stream.once('data', () => {
+        this.#synthesizing -= 1;
+        this.#synth();
+      });
+      this.#playQueue.push(
+        createAudioResource(stream, {
+          inputType: StreamType.Raw,
+        })
+      );
+      this.#play();
+    }
+  }
   #play() {
     if (this.#player.state.status === AudioPlayerStatus.Idle) {
-      const resource = this.#queue.shift();
+      const resource = this.#playQueue.shift();
       if (resource) this.#player.play(resource);
     }
   }
