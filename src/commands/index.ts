@@ -15,7 +15,7 @@ import * as help from './help';
 export async function register(client: Client<true>) {
   const guild = await getGuild(client);
   await Promise.all(
-    [start, end, cancel, voice, dict, emojiBulk, dictBulk].map((e) =>
+    [start, end, cancel, voice, dict, help, emojiBulk, dictBulk].map((e) =>
       guild.commands
         .create(e.data)
         .then((command) => command.permissions.add(e))
