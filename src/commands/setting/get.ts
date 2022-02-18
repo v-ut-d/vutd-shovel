@@ -31,17 +31,12 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
       update: {},
     });
 
-    let dictRoleName = '';
-    if (setting.dictionaryWriteRole) {
-      const role = await interaction.guild.roles.fetch(
-        setting.dictionaryWriteRole
-      );
-      dictRoleName =
-        role?.name ??
-        'ロールの名前を取得できませんでした。ロールが削除された可能性があります。';
-    } else {
-      dictRoleName = '@everyone';
-    }
+    const dictRoleName = setting.dictionaryWriteRole
+      ? `${
+          (await interaction.guild.roles.fetch(setting.dictionaryWriteRole)) ??
+          'Not Found'
+        }`
+      : '@everyone';
 
     const numberOfEmojis = await prisma.emoji.count({
       where: {

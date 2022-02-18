@@ -66,7 +66,7 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
         interaction.options.getInteger('omit_threshold') ?? undefined,
     };
 
-    const setting_written = await prisma.guildSettings.upsert({
+    const writtenSetting = await prisma.guildSettings.upsert({
       where: {
         guildId: interaction.guildId,
       },
@@ -84,9 +84,9 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
     }
 
     let dictRoleName = '';
-    if (setting_written.dictionaryWriteRole) {
+    if (writtenSetting.dictionaryWriteRole) {
       const role = await interaction.guild.roles.fetch(
-        setting_written.dictionaryWriteRole
+        writtenSetting.dictionaryWriteRole
       );
       dictRoleName =
         role?.name ??
@@ -109,7 +109,7 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
     await interaction.reply({
       embeds: [
         new SettingMessageEmbed('set', {
-          setting: setting_written,
+          setting: writtenSetting,
           dictRoleName,
           numberOfEmojis,
           numberOfDictEntries,
