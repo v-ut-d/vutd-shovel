@@ -7,6 +7,7 @@ import * as end from './end';
 import * as start from './start';
 import * as voice from './voice';
 import * as dict from './dict';
+import * as help from './help';
 
 /**
  * registers slash commands.
@@ -42,6 +43,8 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
       return voice.handle(interaction);
     case 'dict':
       return dict.handle(interaction);
+    case 'help':
+      return help.handle(interaction);
     case 'emoji-bulk':
       return emojiBulk.handle(interaction);
     case 'dict-bulk':
