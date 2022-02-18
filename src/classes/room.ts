@@ -2,9 +2,11 @@ import {
   AudioPlayer,
   AudioPlayerStatus,
   AudioResource,
+  createAudioResource,
   entersState,
   joinVoiceChannel,
   NoSubscriberBehavior,
+  StreamType,
   VoiceConnection,
   VoiceConnectionStatus,
 } from '@discordjs/voice';
@@ -39,7 +41,8 @@ export default class Room {
 
   #connection: VoiceConnection;
   #messageCollector: MessageCollector;
-  #queue: AudioResource[] = [];
+  #synthesisQueue = new Promise<void>((resolve) => resolve());
+  #speakQueue: AudioResource[] = [];
   #player: AudioPlayer;
   #preprocessor: Preprocessor;
   #speakers: Collection<Snowflake, Speaker> = new Collection();
@@ -110,12 +113,19 @@ export default class Room {
 
     this.#messageCollector.on('collect', async (message) => {
       const speaker = await this.getOrCreateSpeaker(message.author);
-
-      const resource = speaker.synth(
-        this.#preprocessor.exec(message.cleanContent)
-      );
-      this.#queue.push(resource);
-      this.#play();
+      const preprocessed = this.#preprocessor.exec(message.cleanContent);
+      this.#synthesisQueue = this.#synthesisQueue.then(() => {
+        return new Promise<void>((resolve) => {
+          const stream = speaker.synth(preprocessed);
+          stream.once('data', resolve);
+          this.#speakQueue.push(
+            createAudioResource(stream, {
+              inputType: StreamType.Raw,
+            })
+          );
+          this.#play();
+        });
+      });
     });
 
     process.on('SIGINT', () => {
@@ -179,7 +189,7 @@ export default class Room {
 
   #play() {
     if (this.#player.state.status === AudioPlayerStatus.Idle) {
-      const resource = this.#queue.shift();
+      const resource = this.#speakQueue.shift();
       if (resource) this.#player.play(resource);
     }
   }
