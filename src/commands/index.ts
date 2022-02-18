@@ -38,7 +38,8 @@ type ApplicationCommands = Collection<
 >;
 
 export type PermissionSetterFunction = (
-  guildSettings: GuildSettings
+  guildSettings: GuildSettings,
+  everyoneRole: Snowflake
 ) => ApplicationCommandPermissions[];
 
 const appCommands: ApplicationCommands = new Collection();
@@ -109,13 +110,13 @@ export async function register(client: Client<true>) {
           const permissions = perms.get(s);
           if (!permissions) return;
           if (!c) return;
-          await setPermission(
-            c,
+          await setPermission(c, {
             client,
-            guild_partial.id,
+            guildId: guild.id,
             permissions,
-            guildSettings
-          );
+            guildSettings,
+            everyoneRoleId: guild.roles.everyone.id,
+          });
         })
       );
     })
@@ -138,38 +139,48 @@ export async function register(client: Client<true>) {
   });
 }
 
+interface SetPermissionParameters {
+  client: Client<true>;
+  guildId: Snowflake;
+  permissions: PermissionSetterFunction | ApplicationCommandPermissions[];
+  guildSettings: GuildSettings;
+  everyoneRoleId: Snowflake;
+}
+
 export async function setPermissionBySymbol(
   s: symbol,
-  client: Client<true>,
-  guildId: Snowflake,
-  permissions: PermissionSetterFunction | ApplicationCommandPermissions[],
-  guildSettings: GuildSettings
+  param: SetPermissionParameters
 ) {
   const c = appCommands.get(s);
   if (!c) return Promise.reject('No such command found.');
-  return setPermission(c, client, guildId, permissions, guildSettings);
+  return setPermission(c, param);
 }
 
 async function setPermission(
   c: ApplicationCommand | Collection<string, ApplicationCommand>,
-  client: Client<true>,
-  guildId: Snowflake,
-  permissions: PermissionSetterFunction | ApplicationCommandPermissions[],
-  guildSettings: GuildSettings
+  param: SetPermissionParameters
 ) {
   if ('id' in c) {
     //Production: ApplicationCommand
-    await client.application.commands.permissions.set({
-      guild: guildId,
+    await param.client.application.commands.permissions.set({
+      guild: param.guildId,
       command: c,
-      permissions: CallOrReturn(permissions, guildSettings),
+      permissions: CallOrReturn(
+        param.permissions,
+        param.guildSettings,
+        param.everyoneRoleId
+      ),
     });
   } else {
     //Development: Collection<Snowflake, ApplicationCommand>
     await Promise.all(
       c.map(async (appCommand) => {
         await appCommand.permissions.set({
-          permissions: CallOrReturn(permissions, guildSettings),
+          permissions: CallOrReturn(
+            param.permissions,
+            param.guildSettings,
+            param.everyoneRoleId
+          ),
         });
       })
     );
