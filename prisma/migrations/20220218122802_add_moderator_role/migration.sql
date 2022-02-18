@@ -5,5 +5,5 @@
 
 */
 -- AlterTable
-ALTER TABLE "GuildSettings" ADD COLUMN     "manageRole" TEXT,
+ALTER TABLE "GuildSettings" ADD COLUMN     "moderatorRole" TEXT,
 ALTER COLUMN "dictionaryWriteRole" SET NOT NULL;

@@ -22,11 +22,11 @@ export const data: ApplicationCommandData = {
 export const permissions: PermissionSetterFunction = (
   guildSettings: GuildSettings
 ) => {
-  return guildSettings.manageRole
+  return guildSettings.moderatorRole
     ? [
         {
           type: 'ROLE',
-          id: guildSettings.manageRole,
+          id: guildSettings.moderatorRole,
           permission: true,
         },
       ]

@@ -44,5 +44,5 @@ model GuildSettings {
   readEmojis          Boolean @default(true)
   omitThreshold       Int     @default(200)
   dictionaryWriteRole String
-  manageRole          String?
+  moderatorRole       String?
 }
