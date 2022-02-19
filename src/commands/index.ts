@@ -57,6 +57,13 @@ export async function register(client: Client<true>) {
 
   const guilds = await client.guilds.fetch();
 
+  /**
+   * Remove 'ghost' command(=global commands that remains after deletion of guild command)
+   * */
+  if (!env.production) {
+    await client.application.commands.set([]);
+  }
+
   //Register commands
   await Promise.all(
     commands.map(async (e) => {
