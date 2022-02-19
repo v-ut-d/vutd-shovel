@@ -1,6 +1,7 @@
 import type { GuildSettings } from '@prisma/client';
 import type {
   ApplicationCommand,
+  ApplicationCommandPermissionData,
   ApplicationCommandPermissions,
   Client,
   CommandInteraction,
@@ -298,15 +299,14 @@ async function setPermission(
 ) {
   if ('id' in c) {
     //Production: ApplicationCommand
-    await param.client.application.commands.permissions.set({
+    await c.permissions.set({
       guild: param.guild.id,
-      command: c,
       permissions: await CallOrReturn(
         param.permissions,
         param.guildSettings,
         param.guild
       ),
-    });
+    } as { permissions: ApplicationCommandPermissionData[] });
   } else {
     //Development: Collection<Snowflake, ApplicationCommand>
     await Promise.all(
