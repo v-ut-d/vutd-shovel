@@ -96,17 +96,19 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
       await room.loadGuildSettings();
     }
 
-    let dictRoleName = '';
-    if (writtenSetting.dictionaryWriteRole) {
-      const role = await interaction.guild.roles.fetch(
-        writtenSetting.dictionaryWriteRole
-      );
-      dictRoleName =
-        role?.name ??
-        'ロールの名前を取得できませんでした。ロールが削除された可能性があります。';
-    } else {
-      dictRoleName = '@everyone';
-    }
+    const moderatorRoleName = setting.moderatorRole
+      ? `${
+          (await interaction.guild.roles.fetch(setting.moderatorRole)) ??
+          'Not Found'
+        }`
+      : 'Not set';
+
+    const dictRoleName = setting.dictionaryWriteRole
+      ? `${
+          (await interaction.guild.roles.fetch(setting.dictionaryWriteRole)) ??
+          'Not Found'
+        }`
+      : '@everyone';
 
     const numberOfEmojis = await prisma.emoji.count({
       where: {
@@ -146,6 +148,7 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
       embeds: [
         new SettingMessageEmbed('set', {
           setting: writtenSetting,
+          moderatorRoleName,
           dictRoleName,
           numberOfEmojis,
           numberOfDictEntries,

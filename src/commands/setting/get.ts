@@ -31,6 +31,13 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
       update: {},
     });
 
+    const moderatorRoleName = setting.moderatorRole
+      ? `${
+          (await interaction.guild.roles.fetch(setting.moderatorRole)) ??
+          'Not Found'
+        }`
+      : 'Not set';
+
     const dictRoleName = setting.dictionaryWriteRole
       ? `${
           (await interaction.guild.roles.fetch(setting.dictionaryWriteRole)) ??
@@ -53,6 +60,7 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
       embeds: [
         new SettingMessageEmbed('get', {
           setting: setting,
+          moderatorRoleName,
           dictRoleName,
           numberOfEmojis,
           numberOfDictEntries,
