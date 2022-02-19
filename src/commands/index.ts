@@ -87,6 +87,9 @@ export async function register(client: Client<true>) {
     })
   );
 
+  //Key: GuildId, Value:ModeratorRoleId
+  const roleId: Collection<Snowflake, string> = new Collection();
+
   //Set Command Permissions
   await Promise.all(
     guilds.map(async (guild) => {
@@ -109,6 +112,10 @@ export async function register(client: Client<true>) {
       }
       const guildSettings = _guildSettings;
 
+      if (guildSettings.moderatorRole) {
+        roleId.set(guild.id, guildSettings.moderatorRole);
+      }
+
       await Promise.all(
         appCommands.map(async (c, s) => {
           const permissions = perms.get(s);
@@ -126,6 +133,31 @@ export async function register(client: Client<true>) {
   );
 
   console.log('command initialized.');
+
+  console.log('Start checking roles');
+  await Promise.all(
+    guilds.map(async (guild) => {
+      const g = await guild.fetch();
+      const role = roleId.get(guild.id);
+      if (role && !g.roles.cache.has(role)) {
+        const updateResult = await prisma.guildSettings.update({
+          where: {
+            guildId: guild.id,
+          },
+          data: {
+            moderatorRole: null,
+          },
+        });
+        await setPermissionBySymbol(setting.s, {
+          client,
+          guild,
+          guildSettings: updateResult,
+          permissions: setting.permissions,
+        });
+      }
+    })
+  );
+  console.log('Finished checking roles');
   process.on('SIGINT', async () => {
     if (!env.production) {
       if (!guilds) {
