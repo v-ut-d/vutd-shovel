@@ -9,7 +9,6 @@ if (process.env.NODE_ENV !== 'production')
  */
 export const env = readenv({
   BOT_TOKEN: {},
-  MANAGE_ID: {},
   production: {
     from: 'NODE_ENV',
     default: false,
