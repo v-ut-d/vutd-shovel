@@ -70,7 +70,7 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
       );
       const message = `このサーバーでモデレーターロールとして設定されている${mod?.name}を持っている人だけが/settingを使用できます。`;
       await interaction.reply({
-        embeds: [new ErrorMessageEmbed('サーバー設定', message)],
+        embeds: [new ErrorMessageEmbed('サーバー設定', new Error(message))],
       });
       return;
     }
@@ -80,7 +80,7 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
         '現在このサーバーで管理者権限を持っている人だけが/settingを使用できます。' +
         '/setting setでmoderator_roleを設定するとこれは上書きされます';
       await interaction.reply({
-        embeds: [new ErrorMessageEmbed('サーバー設定', message)],
+        embeds: [new ErrorMessageEmbed('サーバー設定', new Error(message))],
       });
       return;
     }
