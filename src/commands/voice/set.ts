@@ -14,7 +14,7 @@ import rooms from '../../rooms';
 export const data: ApplicationCommandSubCommandData = {
   name: 'set',
   type: 'SUB_COMMAND',
-  description: '読み上げ設定を指定して変更します。',
+  description: '読み上げる声の設定を指定して変更します。',
   options: [
     {
       name: 'htsvoice',

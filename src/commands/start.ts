@@ -12,7 +12,7 @@ import { ErrorMessageEmbed, StartMessageEmbed } from '../components';
  */
 export const data: ApplicationCommandData = {
   name: 'start',
-  description: '読み上げを開始します。',
+  description: 'ボイスチャンネルに参加し、読み上げを開始します。',
   options: [
     {
       name: 'vc',
