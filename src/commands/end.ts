@@ -11,7 +11,7 @@ import { EndMessageEmbed, ErrorMessageEmbed } from '../components';
  */
 export const data: ApplicationCommandData = {
   name: 'end',
-  description: 'ボイスチャンネルから退出し、読み上げを終了します。',
+  description: '読み上げを終了し、ボイスチャンネルから退出します。',
 };
 
 /**
