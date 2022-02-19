@@ -158,6 +158,87 @@ export async function register(client: Client<true>) {
     })
   );
   console.log('Finished checking roles');
+
+  client.on('guildCreate', async (guild) => {
+    if (!env.production) {
+      //Add Guild Command
+      await Promise.all(
+        commands.map(async (e) => {
+          const coll = appCommands.ensure(
+            e.s,
+            () => new Collection<Snowflake, ApplicationCommand>()
+          );
+          if ('id' in coll) {
+            //This should not happen.
+            return;
+          }
+          const created = await guild.commands.create(e.data);
+          coll.set(guild.id, created);
+
+          const guildSettings = await prisma.guildSettings.upsert({
+            where: {
+              guildId: guild.id,
+            },
+            create: {
+              guildId: guild.id,
+              dictionaryWriteRole: guild.roles.everyone.id,
+            },
+            update: {
+              /**
+               * If there is already one, set moderatorRole to null,
+               * to ensure that by re-inviting the bot, the admin of
+               * the guild can reset the moderatorRole.
+               */
+              moderatorRole: null,
+            },
+          });
+          setPermission(coll, {
+            client,
+            guild,
+            permissions: e.permissions,
+            guildSettings,
+          });
+        })
+      );
+    }
+
+    //Set permission
+    const guildSettings = await prisma.guildSettings.upsert({
+      where: {
+        guildId: guild.id,
+      },
+      create: {
+        guildId: guild.id,
+        dictionaryWriteRole: guild.roles.everyone.id,
+      },
+      update: {},
+    });
+    await Promise.all(
+      appCommands.map(async (c, s) => {
+        const permissions = perms.get(s);
+        if (!permissions) return;
+        if (!c) return;
+        await setPermission(c, {
+          client,
+          guild,
+          permissions,
+          guildSettings,
+        });
+      })
+    );
+  });
+
+  client.on('roleDelete', async (role) => {
+    await prisma.guildSettings.updateMany({
+      where: {
+        moderatorRole: role.id,
+      },
+      data: {
+        moderatorRole: null,
+      },
+    });
+  });
+
   process.on('SIGINT', async () => {
     if (!env.production) {
       if (!guilds) {
