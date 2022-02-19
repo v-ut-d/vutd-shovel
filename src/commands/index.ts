@@ -229,13 +229,27 @@ export async function register(client: Client<true>) {
   });
 
   client.on('roleDelete', async (role) => {
-    await prisma.guildSettings.updateMany({
+    if (role.members.has(client.user.id) && role.members.size === 1) return;
+    const updateResult = await prisma.guildSettings.updateMany({
       where: {
         moderatorRole: role.id,
       },
       data: {
         moderatorRole: null,
       },
+    });
+    if (updateResult.count === 0) return;
+    const guildSettings = await prisma.guildSettings.findUnique({
+      where: {
+        guildId: role.guild.id,
+      },
+    });
+    if (!guildSettings) return;
+    await setPermissionBySymbol(setting.s, {
+      client,
+      guild: role.guild,
+      permissions: setting.permissions,
+      guildSettings,
     });
   });
 
