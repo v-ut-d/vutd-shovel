@@ -48,6 +48,9 @@ export type PermissionSetterFunction = (
   guild: OAuth2Guild | Guild
 ) => ApplicationCommandPermissions[] | Promise<ApplicationCommandPermissions[]>;
 
+/**
+ * Stores the correspondence of command, guildId and ApplicationCommand
+ */
 const appCommands: ApplicationCommands = new Collection();
 
 /**
@@ -82,10 +85,6 @@ export async function register(client: Client<true>) {
         coll.concat(new Collection(guilds.map((g) => [g.id, created])));
       } else {
         //Guild Command
-        if (!guilds || 'id' in coll) {
-          //This should not happen.
-          return;
-        }
         await Promise.all(
           guilds.map(async (guild) => {
             const created = await client.application.commands.create(
@@ -107,24 +106,18 @@ export async function register(client: Client<true>) {
   console.log('Setting permissions...');
   await Promise.all(
     guilds.map(async (guild) => {
-      let _guildSettings: GuildSettings | null;
-      {
-        _guildSettings = await prisma.guildSettings.findUnique({
+      const guildSettings =
+        (await prisma.guildSettings.findUnique({
           where: {
             guildId: guild.id,
           },
-        });
-        if (!_guildSettings) {
-          const g = await guild.fetch();
-          _guildSettings = await prisma.guildSettings.create({
-            data: {
-              guildId: guild.id,
-              dictionaryWriteRole: g.roles.everyone.id,
-            },
-          });
-        }
-      }
-      const guildSettings = _guildSettings;
+        })) ??
+        (await prisma.guildSettings.create({
+          data: {
+            guildId: guild.id,
+            dictionaryWriteRole: (await guild.fetch()).roles.everyone.id,
+          },
+        }));
 
       if (guildSettings.moderatorRole) {
         //Cache roleId for role checking
@@ -133,10 +126,10 @@ export async function register(client: Client<true>) {
 
       await Promise.all(
         appCommands.map(async (c, s) => {
-          const permissions = perms.get(s);
-          if (!permissions) return;
           const appCommand = c.get(guild.id);
           if (!appCommand) return;
+          const permissions = perms.get(s);
+          if (!permissions) return;
           await setPermission(appCommand, {
             client,
             guild,
@@ -209,10 +202,10 @@ export async function register(client: Client<true>) {
     });
     await Promise.all(
       appCommands.map(async (c, s) => {
-        const permissions = perms.get(s);
-        if (!permissions) return;
         const appCommand = c.get(guild.id);
         if (!appCommand) return;
+        const permissions = perms.get(s);
+        if (!permissions) return;
         await setPermission(appCommand, {
           client,
           guild,
