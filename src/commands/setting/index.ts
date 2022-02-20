@@ -68,7 +68,7 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
       const mod = await interaction.guild.roles.fetch(
         roleSetting.moderatorRole
       );
-      const message = `このサーバーでモデレーターロールとして設定されている${mod?.name}を持っている人だけが/settingを使用できます。`;
+      const message = `このサーバーでモデレーターロールとして設定されている'@${mod?.name}'を持っている人だけが/settingを使用できます。`;
       await interaction.reply({
         embeds: [new ErrorMessageEmbed('サーバー設定', new Error(message))],
       });
