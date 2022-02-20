@@ -34,7 +34,10 @@ const commands = [
   dictBulk,
 ];
 
-//Value: ApplicationCommand(in production) or Collection of ApplicationCommand with guildId as key(in development)
+/**
+ * Key: The symbol that is unique to command file
+ * Value: Collection of ApplicationCommand with guildId as key
+ */
 type ApplicationCommands = Collection<
   symbol,
   Collection<Snowflake, ApplicationCommand>
