@@ -82,7 +82,9 @@ export async function register(client: Client<true>) {
       if (env.production) {
         //Global Command
         const created = await client.application.commands.create(e.data);
-        coll.concat(new Collection(guilds.map((g) => [g.id, created])));
+        guilds.forEach((g) => {
+          coll.set(g.id, created);
+        });
       } else {
         //Guild Command
         await Promise.all(
