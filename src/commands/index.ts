@@ -37,7 +37,7 @@ const commands = [
 //Value: ApplicationCommand(in production) or Collection of ApplicationCommand with guildId as key(in development)
 type ApplicationCommands = Collection<
   symbol,
-  ApplicationCommand | Collection<Snowflake, ApplicationCommand>
+  Collection<Snowflake, ApplicationCommand>
 >;
 
 export type PermissionSetterFunction = (
@@ -66,18 +66,19 @@ export async function register(client: Client<true>) {
   }
 
   //Register commands
+  console.log('Registering commands...');
   await Promise.all(
     commands.map(async (e) => {
+      const coll = appCommands.ensure(
+        e.s,
+        () => new Collection<Snowflake, ApplicationCommand>()
+      );
       if (env.production) {
         //Global Command
         const created = await client.application.commands.create(e.data);
-        appCommands.set(e.s, created);
+        coll.concat(new Collection(guilds.map((g) => [g.id, created])));
       } else {
         //Guild Command
-        const coll = appCommands.ensure(
-          e.s,
-          () => new Collection<Snowflake, ApplicationCommand>()
-        );
         if (!guilds || 'id' in coll) {
           //This should not happen.
           return;
@@ -94,11 +95,13 @@ export async function register(client: Client<true>) {
       }
     })
   );
+  console.log('Registered commands.');
 
   //Key: GuildId, Value:ModeratorRoleId
   const roleId: Collection<Snowflake, string> = new Collection();
 
   //Set Command Permissions
+  console.log('Setting permissions...');
   await Promise.all(
     guilds.map(async (guild) => {
       let _guildSettings: GuildSettings | null;
@@ -121,6 +124,7 @@ export async function register(client: Client<true>) {
       const guildSettings = _guildSettings;
 
       if (guildSettings.moderatorRole) {
+        //Cache roleId for role checking
         roleId.set(guild.id, guildSettings.moderatorRole);
       }
 
@@ -128,8 +132,9 @@ export async function register(client: Client<true>) {
         appCommands.map(async (c, s) => {
           const permissions = perms.get(s);
           if (!permissions) return;
-          if (!c) return;
-          await setPermission(c, {
+          const appCommand = c.get(guild.id);
+          if (!appCommand) return;
+          await setPermission(appCommand, {
             client,
             guild,
             permissions,
@@ -139,10 +144,12 @@ export async function register(client: Client<true>) {
       );
     })
   );
+  console.log('Set permissions.');
 
   console.log('command initialized.');
 
-  console.log('Start checking roles');
+  //Check for deleted roles registered as moderatorRole
+  console.log('Checking roles...');
   await Promise.all(
     guilds.map(async (guild) => {
       const g = await guild.fetch();
@@ -165,7 +172,7 @@ export async function register(client: Client<true>) {
       }
     })
   );
-  console.log('Finished checking roles');
+  console.log('Checked roles.');
 
   client.on('guildCreate', async (guild) => {
     if (!env.production) {
@@ -182,30 +189,6 @@ export async function register(client: Client<true>) {
           }
           const created = await guild.commands.create(e.data);
           coll.set(guild.id, created);
-
-          const guildSettings = await prisma.guildSettings.upsert({
-            where: {
-              guildId: guild.id,
-            },
-            create: {
-              guildId: guild.id,
-              dictionaryWriteRole: guild.roles.everyone.id,
-            },
-            update: {
-              /**
-               * If there is already one, set moderatorRole to null,
-               * to ensure that by re-inviting the bot, the admin of
-               * the guild can reset the moderatorRole.
-               */
-              moderatorRole: null,
-            },
-          });
-          setPermission(coll, {
-            client,
-            guild,
-            permissions: e.permissions,
-            guildSettings,
-          });
         })
       );
     }
@@ -225,8 +208,9 @@ export async function register(client: Client<true>) {
       appCommands.map(async (c, s) => {
         const permissions = perms.get(s);
         if (!permissions) return;
-        if (!c) return;
-        await setPermission(c, {
+        const appCommand = c.get(guild.id);
+        if (!appCommand) return;
+        await setPermission(appCommand, {
           client,
           guild,
           permissions,
@@ -288,39 +272,23 @@ export async function setPermissionBySymbol(
   s: symbol,
   param: SetPermissionParameters
 ) {
-  const c = appCommands.get(s);
-  if (!c) return Promise.reject('No such command found.');
-  return setPermission(c, param);
+  const appCommand = appCommands.get(s)?.get(param.guild.id);
+  if (!appCommand) return Promise.reject('No such command found.');
+  return setPermission(appCommand, param);
 }
 
 async function setPermission(
-  c: ApplicationCommand | Collection<string, ApplicationCommand>,
+  c: ApplicationCommand,
   param: SetPermissionParameters
 ) {
-  if ('id' in c) {
-    //Production: ApplicationCommand
-    await c.permissions.set({
-      guild: param.guild.id,
-      permissions: await CallOrReturn(
-        param.permissions,
-        param.guildSettings,
-        param.guild
-      ),
-    } as { permissions: ApplicationCommandPermissionData[] });
-  } else {
-    //Development: Collection<Snowflake, ApplicationCommand>
-    await Promise.all(
-      c.map(async (appCommand) => {
-        await appCommand.permissions.set({
-          permissions: await CallOrReturn(
-            param.permissions,
-            param.guildSettings,
-            param.guild
-          ),
-        });
-      })
-    );
-  }
+  await c.permissions.set({
+    guild: param.guild.id,
+    permissions: await CallOrReturn(
+      param.permissions,
+      param.guildSettings,
+      param.guild
+    ),
+  } as { permissions: ApplicationCommandPermissionData[] });
 }
 
 /**
