@@ -1,11 +1,11 @@
 import type { GuildSettings } from '@prisma/client';
 import type {
   ApplicationCommand,
-  ApplicationCommandPermissionData,
   ApplicationCommandPermissions,
   Client,
   CommandInteraction,
   Guild,
+  GuildResolvable,
   OAuth2Guild,
   Snowflake,
 } from 'discord.js';
@@ -276,7 +276,7 @@ export async function setPermissionBySymbol(
 }
 
 async function setPermission(
-  c: ApplicationCommand,
+  c: ApplicationCommand<{ guild: GuildResolvable }>,
   param: SetPermissionParameters
 ) {
   await c.permissions.set({
@@ -286,7 +286,7 @@ async function setPermission(
       param.guildSettings,
       param.guild
     ),
-  } as { permissions: ApplicationCommandPermissionData[] });
+  });
 }
 
 /**
