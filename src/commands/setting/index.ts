@@ -14,8 +14,6 @@ import type { GuildSettings } from '@prisma/client';
 import { prisma } from '../../database';
 import { ErrorMessageEmbed } from '../../components';
 
-export const s = Symbol('setting');
-
 /**
  * `/setting` command data.
  */

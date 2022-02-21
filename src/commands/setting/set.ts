@@ -2,7 +2,7 @@ import type {
   ApplicationCommandSubCommandData,
   CommandInteraction,
 } from 'discord.js';
-import { setPermissionBySymbol } from '..';
+import { setPermissionByName } from '..';
 import { ErrorMessageEmbed } from '../../components';
 import SettingMessageEmbed from '../../components/setting';
 import { prisma } from '../../database';
@@ -129,16 +129,17 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
     };
     if (setting.moderatorRole) {
       Promise.all(
-        [_setting, dictBulk, emojiBulk].map(async ({ s, permissions }) =>
-          setPermissionBySymbol(s, {
-            ...permissionParams,
-            permissions,
-          })
+        [_setting, dictBulk, emojiBulk].map(
+          async ({ data: { name }, permissions }) =>
+            setPermissionByName(name, {
+              ...permissionParams,
+              permissions,
+            })
         )
       );
     }
     if (setting.dictionaryWriteRole) {
-      setPermissionBySymbol(dict.s, {
+      setPermissionByName(dict.data.name, {
         ...permissionParams,
         permissions: dict.permissions,
       });

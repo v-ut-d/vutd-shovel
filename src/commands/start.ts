@@ -7,8 +7,6 @@ import rooms from '../rooms';
 import { Room } from '../classes';
 import { ErrorMessageEmbed, StartMessageEmbed } from '../components';
 
-export const s = Symbol('start');
-
 /**
  * `/start` command data.
  */

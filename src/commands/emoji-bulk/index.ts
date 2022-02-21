@@ -5,8 +5,6 @@ import * as export_ from './export';
 import * as import_ from './import';
 import * as keys from './keys';
 
-export const s = Symbol('emoji-bulk');
-
 /**
  * `/emoji-bulk` command data.
  */

@@ -5,8 +5,6 @@ import type {
 } from 'discord.js';
 import { ErrorMessageEmbed, HelpMessageEmbed } from '../components';
 
-export const s = Symbol('help');
-
 /**
  * `/help` command data.
  */

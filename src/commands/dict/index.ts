@@ -5,8 +5,6 @@ import * as del from './delete';
 import type { PermissionSetterFunction } from '..';
 import type { GuildSettings } from '@prisma/client';
 
-export const s = Symbol('dict');
-
 /**
  * `/dict` command data.
  */

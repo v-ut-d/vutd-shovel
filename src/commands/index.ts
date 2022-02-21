@@ -39,7 +39,7 @@ const commands = [
  * Value: Collection of ApplicationCommand with guildId as key
  */
 type ApplicationCommands = Collection<
-  symbol,
+  string,
   Collection<Snowflake, ApplicationCommand>
 >;
 
@@ -58,9 +58,9 @@ const appCommands: ApplicationCommands = new Collection();
  */
 export async function register(client: Client<true>) {
   const perms = new Collection<
-    symbol,
+    string,
     ApplicationCommandPermissions[] | PermissionSetterFunction
-  >(commands.map((t) => [t.s, t.permissions]));
+  >(commands.map((t) => [t.data.name, t.permissions]));
 
   const guilds = await client.guilds.fetch();
 
@@ -76,7 +76,7 @@ export async function register(client: Client<true>) {
   await Promise.all(
     commands.map(async (e) => {
       const coll = appCommands.ensure(
-        e.s,
+        e.data.name,
         () => new Collection<Snowflake, ApplicationCommand>()
       );
       if (env.production) {
@@ -161,7 +161,7 @@ export async function register(client: Client<true>) {
             moderatorRole: null,
           },
         });
-        await setPermissionBySymbol(setting.s, {
+        await setPermissionByName(setting.data.name, {
           client,
           guild,
           guildSettings: updateResult,
@@ -178,7 +178,7 @@ export async function register(client: Client<true>) {
       await Promise.all(
         commands.map(async (e) => {
           const coll = appCommands.ensure(
-            e.s,
+            e.data.name,
             () => new Collection<Snowflake, ApplicationCommand>()
           );
           if ('id' in coll) {
@@ -235,7 +235,7 @@ export async function register(client: Client<true>) {
       },
     });
     if (!guildSettings) return;
-    await setPermissionBySymbol(setting.s, {
+    await setPermissionByName(setting.data.name, {
       client,
       guild: role.guild,
       permissions: setting.permissions,
@@ -266,11 +266,11 @@ interface SetPermissionParameters {
   guildSettings: GuildSettings;
 }
 
-export async function setPermissionBySymbol(
-  s: symbol,
+export async function setPermissionByName(
+  name: string,
   param: SetPermissionParameters
 ) {
-  const appCommand = appCommands.get(s)?.get(param.guild.id);
+  const appCommand = appCommands.get(name)?.get(param.guild.id);
   if (!appCommand) return Promise.reject('No such command found.');
   return setPermission(appCommand, param);
 }
