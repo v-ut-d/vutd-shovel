@@ -1,13 +1,10 @@
 import type { GuildSettings } from '@prisma/client';
 import type {
-  ApplicationCommand,
   ApplicationCommandData,
   ApplicationCommandPermissions,
   Client,
   CommandInteraction,
   Guild,
-  GuildResolvable,
-  Snowflake,
 } from 'discord.js';
 import { Collection } from 'discord.js';
 import { prisma } from '../database';
@@ -65,23 +62,12 @@ class CommandManager<Production extends boolean> {
     return guildSettings;
   }
 
-  readonly #commands: Production extends true
-    ? Collection<
-        string,
-        ApplicationCommand<{
-          guild: GuildResolvable;
-        }>
-      >
-    : Collection<Snowflake, Collection<string, ApplicationCommand>>;
   #commandDefinitions = new Collection<string, CommandDefinition>();
 
   constructor(
     readonly production: Production,
     commandDefinitions: CommandDefinition[]
   ) {
-    // it's just an empty collection; could not use `typeof this.#commands`
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    this.#commands = new Collection<any, any>();
     commandDefinitions.forEach((d) => {
       this.#commandDefinitions.set(d.data.name, d);
     });
@@ -141,20 +127,18 @@ class CommandManager<Production extends boolean> {
   ) {
     await client.application.commands.set([]);
 
-    (
-      await Promise.all(
-        client.guilds.cache.map(async (guild) => {
-          const commands = await guild.commands.set(
-            this.#commandDefinitions.map(({ data }) => data)
-          );
+    await Promise.all(
+      client.guilds.cache.map(async (guild) => {
+        const commands = await guild.commands.set(
+          this.#commandDefinitions.map(({ data }) => data)
+        );
 
-          return [
-            guild.id,
-            new Collection(commands.map((command) => [command.name, command])),
-          ] as const;
-        })
-      )
-    ).forEach(([guildId, command]) => this.#commands.set(guildId, command));
+        return [
+          guild.id,
+          new Collection(commands.map((command) => [command.name, command])),
+        ] as const;
+      })
+    );
 
     process.on('SIGINT', async () => {
       await Promise.all(
@@ -167,11 +151,9 @@ class CommandManager<Production extends boolean> {
   }
 
   async #registerProduction(this: CommandManager<true>, client: Client<true>) {
-    (
-      await client.application.commands.set(
-        this.#commandDefinitions.map(({ data }) => data)
-      )
-    ).forEach((command) => this.#commands.set(command.name, command));
+    await client.application.commands.set(
+      this.#commandDefinitions.map(({ data }) => data)
+    );
   }
 
   async #setPermissionDevelopment(
@@ -179,7 +161,7 @@ class CommandManager<Production extends boolean> {
     guildSettings: GuildSettings,
     guild: Guild
   ) {
-    const commands = this.#commands.get(guild.id);
+    const commands = guild.commands.cache;
     if (!commands) return;
 
     await Promise.all(
@@ -203,8 +185,10 @@ class CommandManager<Production extends boolean> {
     guildSettings: GuildSettings,
     guild: Guild
   ) {
+    const { application } = guild.client;
+    if (!application) return;
     await Promise.all(
-      this.#commands.map(async (command, name) => {
+      application.commands.cache.map(async (command, name) => {
         // commandDefinition always exists; command comes from this source code
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const { permissions } = this.#commandDefinitions.get(name)!;
@@ -219,14 +203,7 @@ class CommandManager<Production extends boolean> {
   }
 
   async #addGuildDevelopment(this: CommandManager<false>, guild: Guild) {
-    const commands = await guild.commands.set(
-      this.#commandDefinitions.map(({ data }) => data)
-    );
-
-    this.#commands.set(
-      guild.id,
-      new Collection(commands.map((command) => [command.name, command]))
-    );
+    await guild.commands.set(this.#commandDefinitions.map(({ data }) => data));
 
     const guildSettings = await CommandManager.#resolveGuildSettings(guild);
     await this.#setPermissionDevelopment(guildSettings, guild);
