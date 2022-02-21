@@ -1,5 +1,5 @@
-import type { Client, Interaction } from 'discord.js';
-import * as commands from './commands';
+import type { Client, Guild, Interaction } from 'discord.js';
+import commands from './commands';
 
 /**
  * handles client.on('interactionCreate') event.
@@ -11,6 +11,10 @@ export async function interaction(interaction: Interaction) {
   } catch (e) {
     console.error(e);
   }
+}
+
+export async function guild(guild: Guild) {
+  commands.addGuild(guild).catch(console.error);
 }
 
 /**

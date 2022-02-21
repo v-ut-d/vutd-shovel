@@ -1,8 +1,4 @@
-import type {
-  ApplicationCommandData,
-  ApplicationCommandPermissions,
-  CommandInteraction,
-} from 'discord.js';
+import type { ApplicationCommandData, CommandInteraction } from 'discord.js';
 import rooms from '../rooms';
 import { Room } from '../classes';
 import { ErrorMessageEmbed, StartMessageEmbed } from '../components';
@@ -23,11 +19,6 @@ export const data: ApplicationCommandData = {
     },
   ],
 };
-
-/**
- * `/start` command permission data.
- */
-export const permissions: ApplicationCommandPermissions[] = [];
 
 /**
  * handles `/start` command.

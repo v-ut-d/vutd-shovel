@@ -1,6 +1,7 @@
 import type { GuildSettings } from '@prisma/client';
 import type {
   ApplicationCommand,
+  ApplicationCommandData,
   ApplicationCommandPermissions,
   Client,
   CommandInteraction,
@@ -21,7 +22,218 @@ import * as dict from './dict';
 import * as setting from './setting';
 import * as help from './help';
 
-const commandDefinitions = [
+interface CommandDefinition {
+  data: ApplicationCommandData;
+  permissions?: PermissionSetterFunction;
+  handle(interaction: CommandInteraction<'cached'>): Promise<void>;
+}
+
+export type PermissionSetterFunction = (
+  guildSettings: GuildSettings,
+  guild: Guild
+) => ApplicationCommandPermissions[];
+
+class CommandManager<Production extends boolean> {
+  static async #resolveGuildSettings(guild: Guild) {
+    let guildSettings =
+      (await prisma.guildSettings.findUnique({
+        where: {
+          guildId: guild.id,
+        },
+      })) ??
+      (await prisma.guildSettings.create({
+        data: {
+          guildId: guild.id,
+          dictionaryWriteRole: guild.roles.everyone.id,
+        },
+      }));
+
+    if (
+      guildSettings.moderatorRole &&
+      !guild.roles.cache.has(guildSettings.moderatorRole)
+    ) {
+      guildSettings = await prisma.guildSettings.update({
+        where: {
+          guildId: guild.id,
+        },
+        data: {
+          moderatorRole: null,
+        },
+      });
+    }
+
+    return guildSettings;
+  }
+
+  readonly #commands: Production extends true
+    ? Collection<
+        string,
+        ApplicationCommand<{
+          guild: GuildResolvable;
+        }>
+      >
+    : Collection<Snowflake, Collection<string, ApplicationCommand>>;
+  #commandDefinitions = new Collection<string, CommandDefinition>();
+
+  constructor(
+    readonly production: Production,
+    commandDefinitions: CommandDefinition[]
+  ) {
+    // it's just an empty collection; could not use `typeof this.#commands`
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    this.#commands = new Collection<any, any>();
+    commandDefinitions.forEach((d) => {
+      this.#commandDefinitions.set(d.data.name, d);
+    });
+  }
+
+  async register(client: Client<true>) {
+    await Promise.all(
+      (await client.guilds.fetch()).map((guild) => guild.fetch())
+    );
+
+    if (this.production) {
+      await (this as CommandManager<true>).#registerProduction(client);
+    } else {
+      await (this as CommandManager<false>).#registerDevelopment(client);
+    }
+
+    await Promise.all(
+      client.guilds.cache.map(async (guild) => {
+        const guildSettings = await CommandManager.#resolveGuildSettings(guild);
+        await this.setPermission(guildSettings, guild);
+      })
+    );
+  }
+
+  async handle(interaction: CommandInteraction<'cached'>) {
+    return this.#commandDefinitions
+      .get(interaction.commandName)
+      ?.handle(interaction);
+  }
+
+  async setPermission(guildSettings: GuildSettings, guild: Guild) {
+    if (this.production) {
+      await (this as CommandManager<true>).#setPermissionProduction(
+        guildSettings,
+        guild
+      );
+    } else {
+      await (this as CommandManager<false>).#setPermissionDevelopment(
+        guildSettings,
+        guild
+      );
+    }
+  }
+
+  async addGuild(guild: Guild) {
+    if (!this.production) {
+      await (this as CommandManager<false>).#addGuildDevelopment(guild);
+    }
+
+    const guildSettings = await CommandManager.#resolveGuildSettings(guild);
+    await this.setPermission(guildSettings, guild);
+  }
+
+  async #registerDevelopment(
+    this: CommandManager<false>,
+    client: Client<true>
+  ) {
+    await client.application.commands.set([]);
+
+    (
+      await Promise.all(
+        client.guilds.cache.map(async (guild) => {
+          const commands = await guild.commands.set(
+            this.#commandDefinitions.map(({ data }) => data)
+          );
+
+          return [
+            guild.id,
+            new Collection(commands.map((command) => [command.name, command])),
+          ] as const;
+        })
+      )
+    ).forEach(([guildId, command]) => this.#commands.set(guildId, command));
+
+    process.on('SIGINT', async () => {
+      await Promise.all(
+        client.guilds.cache.map((guild) =>
+          client.application.commands.set([], guild.id)
+        )
+      );
+      process.exit(0);
+    });
+  }
+
+  async #registerProduction(this: CommandManager<true>, client: Client<true>) {
+    (
+      await client.application.commands.set(
+        this.#commandDefinitions.map(({ data }) => data)
+      )
+    ).forEach((command) => this.#commands.set(command.name, command));
+  }
+
+  async #setPermissionDevelopment(
+    this: CommandManager<false>,
+    guildSettings: GuildSettings,
+    guild: Guild
+  ) {
+    const commands = this.#commands.get(guild.id);
+    if (!commands) return;
+
+    await Promise.all(
+      commands
+        .map(async (command, name) => {
+          // commandDefinition always exists; command comes from this source code
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          const { permissions } = this.#commandDefinitions.get(name)!;
+          if (!permissions) return undefined;
+
+          return command.permissions.set({
+            permissions: permissions(guildSettings, guild),
+          });
+        })
+        .filter((v): v is NonNullable<typeof v> => Boolean(v))
+    );
+  }
+
+  async #setPermissionProduction(
+    this: CommandManager<true>,
+    guildSettings: GuildSettings,
+    guild: Guild
+  ) {
+    await Promise.all(
+      this.#commands.map(async (command, name) => {
+        // commandDefinition always exists; command comes from this source code
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const { permissions } = this.#commandDefinitions.get(name)!;
+        if (!permissions) return undefined;
+
+        return command.permissions.set({
+          guild,
+          permissions: permissions(guildSettings, guild),
+        });
+      })
+    );
+  }
+
+  async #addGuildDevelopment(this: CommandManager<false>, guild: Guild) {
+    const commands = await guild.commands.set(
+      this.#commandDefinitions.map(({ data }) => data)
+    );
+
+    this.#commands.set(
+      guild.id,
+      new Collection(commands.map((command) => [command.name, command]))
+    );
+
+    const guildSettings = await CommandManager.#resolveGuildSettings(guild);
+    await this.#setPermissionDevelopment(guildSettings, guild);
+  }
+}
+
+const commands = new CommandManager(env.production, [
   start,
   end,
   cancel,
@@ -31,265 +243,6 @@ const commandDefinitions = [
   setting,
   emojiBulk,
   dictBulk,
-];
+]);
 
-/**
- * Key: The symbol that is unique to command file
- * Value: Collection of ApplicationCommand with guildId as key
- */
-type ApplicationCommands = Collection<
-  string,
-  Collection<Snowflake, ApplicationCommand>
->;
-
-export type PermissionSetterFunction = (
-  guildSettings: GuildSettings,
-  guild: Guild
-) => ApplicationCommandPermissions[];
-
-/**
- * Stores the correspondence of command, guildId and ApplicationCommand
- */
-const commands: ApplicationCommands = new Collection();
-
-/**
- * registers slash commands.
- */
-export async function register(client: Client<true>) {
-  const perms = new Collection(
-    commandDefinitions.map((t) => [t.data.name, t.permissions])
-  );
-
-  const guilds = await Promise.all(
-    (await client.guilds.fetch()).map((guild) => guild.fetch())
-  );
-
-  /**
-   * Remove 'ghost' command(=global commands that remains after deletion of guild command)
-   * */
-  if (!env.production) {
-    await client.application.commands.set([]);
-  }
-
-  //Register commands
-  console.log('Registering commands...');
-  await Promise.all(
-    commandDefinitions.flatMap(({ data }) => {
-      const coll = commands.ensure(data.name, () => new Collection());
-      if (env.production) {
-        //Global Command
-        return client.application.commands
-          .create(data)
-          .then((created) =>
-            guilds.forEach(({ id }) => void coll.set(id, created))
-          );
-      } else {
-        //Guild Command
-        return guilds.map(({ id }) =>
-          client.application.commands
-            .create(data, id)
-            .then((created) => void coll.set(id, created))
-        );
-      }
-    })
-  );
-  console.log('Registered commands.');
-
-  //Key: GuildId, Value:ModeratorRoleId
-  const roleId = new Collection<Snowflake, string>();
-
-  //Set Command Permissions
-  console.log('Setting permissions...');
-  await Promise.all(
-    guilds.map(async (guild) => {
-      const guildSettings =
-        (await prisma.guildSettings.findUnique({
-          where: {
-            guildId: guild.id,
-          },
-        })) ??
-        (await prisma.guildSettings.create({
-          data: {
-            guildId: guild.id,
-            dictionaryWriteRole: (await guild.fetch()).roles.everyone.id,
-          },
-        }));
-
-      if (guildSettings.moderatorRole) {
-        //Cache roleId for role checking
-        roleId.set(guild.id, guildSettings.moderatorRole);
-      }
-
-      await Promise.all(
-        commands.map(async (c, s) => {
-          const command = c.get(guild.id);
-          if (!command) return;
-          const permissions = perms.get(s);
-          if (!permissions) return;
-          await setPermission(command, {
-            client,
-            guild,
-            permissions,
-            guildSettings,
-          });
-        })
-      );
-    })
-  );
-  console.log('Set permissions.');
-
-  console.log('command initialized.');
-
-  //Check for deleted roles registered as moderatorRole
-  console.log('Checking roles...');
-  await Promise.all(
-    guilds.map(async (guild) => {
-      const role = roleId.get(guild.id);
-      if (role && !guild.roles.cache.has(role)) {
-        const updateResult = await prisma.guildSettings.update({
-          where: {
-            guildId: guild.id,
-          },
-          data: {
-            moderatorRole: null,
-          },
-        });
-        await setPermissionByName(setting.data.name, {
-          client,
-          guild,
-          guildSettings: updateResult,
-          permissions: setting.permissions,
-        });
-      }
-    })
-  );
-  console.log('Checked roles.');
-
-  client.on('guildCreate', async (guild) => {
-    if (!env.production) {
-      //Add Guild Command
-      await Promise.all(
-        commandDefinitions.map(async ({ data }) => {
-          const coll = commands.ensure(data.name, () => new Collection());
-          const created = await guild.commands.create(data);
-          coll.set(guild.id, created);
-        })
-      );
-    }
-
-    //Set permission
-    const guildSettings = await prisma.guildSettings.upsert({
-      where: {
-        guildId: guild.id,
-      },
-      create: {
-        guildId: guild.id,
-        dictionaryWriteRole: guild.roles.everyone.id,
-      },
-      update: {},
-    });
-    await Promise.all(
-      commands.map(async (c, name) => {
-        const command = c.get(guild.id);
-        if (!command) return;
-        const permissions = perms.get(name);
-        if (!permissions) return;
-        await setPermission(command, {
-          client,
-          guild,
-          permissions,
-          guildSettings,
-        });
-      })
-    );
-  });
-
-  client.on('roleDelete', async (role) => {
-    if (role.members.has(client.user.id) && role.members.size === 1) return;
-    const updateResult = await prisma.guildSettings.updateMany({
-      where: {
-        moderatorRole: role.id,
-      },
-      data: {
-        moderatorRole: null,
-      },
-    });
-    if (updateResult.count === 0) return;
-    const guildSettings = await prisma.guildSettings.findUnique({
-      where: {
-        guildId: role.guild.id,
-      },
-    });
-    if (!guildSettings) return;
-    await setPermissionByName(setting.data.name, {
-      client,
-      guild: role.guild,
-      permissions: setting.permissions,
-      guildSettings,
-    });
-  });
-
-  process.on('SIGINT', async () => {
-    if (!env.production) {
-      await Promise.all(
-        guilds.map((guild) => client.application.commands.set([], guild.id))
-      );
-    }
-    process.exit(0);
-  });
-}
-
-interface SetPermissionParameters {
-  client: Client<true>;
-  guild: Guild;
-  permissions: PermissionSetterFunction | ApplicationCommandPermissions[];
-  guildSettings: GuildSettings;
-}
-
-export async function setPermissionByName(
-  name: string,
-  param: SetPermissionParameters
-) {
-  const command = commands.get(name)?.get(param.guild.id);
-  if (!command) throw new Error('No such command found.');
-  await setPermission(command, param);
-}
-
-async function setPermission(
-  c: ApplicationCommand<{ guild: GuildResolvable }>,
-  { permissions, guild, guildSettings }: SetPermissionParameters
-) {
-  await c.permissions.set({
-    guild,
-    permissions:
-      typeof permissions === 'function'
-        ? permissions(guildSettings, guild)
-        : permissions,
-  });
-}
-
-/**
- * handles any slash command ({@link CommandInteraction}).
- */
-export async function handle(interaction: CommandInteraction<'cached'>) {
-  switch (interaction.commandName) {
-    case 'start':
-      return start.handle(interaction);
-    case 'end':
-      return end.handle(interaction);
-    case 'cancel':
-      return cancel.handle(interaction);
-    case 'voice':
-      return voice.handle(interaction);
-    case 'dict':
-      return dict.handle(interaction);
-    case 'setting':
-      return setting.handle(interaction);
-    case 'help':
-      return help.handle(interaction);
-    case 'emoji-bulk':
-      return emojiBulk.handle(interaction);
-    case 'dict-bulk':
-      return dictBulk.handle(interaction);
-  }
-}
+export default commands;

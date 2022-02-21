@@ -1,8 +1,4 @@
-import type {
-  ApplicationCommandData,
-  ApplicationCommandPermissions,
-  CommandInteraction,
-} from 'discord.js';
+import type { ApplicationCommandData, CommandInteraction } from 'discord.js';
 import * as get from './get';
 import * as random from './random';
 import * as set from './set';
@@ -15,11 +11,6 @@ export const data: ApplicationCommandData = {
   description: '自分の読み上げ設定に関するコマンド群です。',
   options: [get.data, random.data, set.data],
 };
-
-/**
- * `/voice` command permission data.
- */
-export const permissions: ApplicationCommandPermissions[] = [];
 
 /**
  * handles `/voice` subcommands.

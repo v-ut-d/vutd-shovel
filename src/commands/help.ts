@@ -1,8 +1,4 @@
-import type {
-  ApplicationCommandData,
-  ApplicationCommandPermissions,
-  CommandInteraction,
-} from 'discord.js';
+import type { ApplicationCommandData, CommandInteraction } from 'discord.js';
 import { ErrorMessageEmbed, HelpMessageEmbed } from '../components';
 
 /**
@@ -12,11 +8,6 @@ export const data: ApplicationCommandData = {
   name: 'help',
   description: '使い方を表示します。',
 };
-
-/**
- * `/help` command permission data.
- */
-export const permissions: ApplicationCommandPermissions[] = [];
 
 /**
  * handles `/help` command.

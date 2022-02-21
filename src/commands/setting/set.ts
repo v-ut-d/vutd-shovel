@@ -2,16 +2,11 @@ import type {
   ApplicationCommandSubCommandData,
   CommandInteraction,
 } from 'discord.js';
-import { setPermissionByName } from '..';
 import { ErrorMessageEmbed } from '../../components';
 import SettingMessageEmbed from '../../components/setting';
 import { prisma } from '../../database';
 import rooms from '../../rooms';
-
-import * as _setting from '.';
-import * as dictBulk from '../dict-bulk';
-import * as emojiBulk from '../emoji-bulk';
-import * as dict from '../dict';
+import commands from '..';
 
 /**
  * `/setting set` command data.
@@ -121,29 +116,7 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
       },
     });
 
-    //Renew permissions
-    const permissionParams = {
-      client: interaction.client,
-      guild: interaction.guild,
-      guildSettings: writtenSetting,
-    };
-    if (setting.moderatorRole) {
-      Promise.all(
-        [_setting, dictBulk, emojiBulk].map(
-          async ({ data: { name }, permissions }) =>
-            setPermissionByName(name, {
-              ...permissionParams,
-              permissions,
-            })
-        )
-      );
-    }
-    if (setting.dictionaryWriteRole) {
-      setPermissionByName(dict.data.name, {
-        ...permissionParams,
-        permissions: dict.permissions,
-      });
-    }
+    commands.setPermission(writtenSetting, interaction.guild);
 
     await interaction.reply({
       embeds: [
