@@ -21,7 +21,7 @@ import * as dict from './dict';
 import * as setting from './setting';
 import * as help from './help';
 
-const commands = [
+const commandDefinitions = [
   start,
   end,
   cancel,
@@ -50,16 +50,15 @@ export type PermissionSetterFunction = (
 /**
  * Stores the correspondence of command, guildId and ApplicationCommand
  */
-const appCommands: ApplicationCommands = new Collection();
+const commands: ApplicationCommands = new Collection();
 
 /**
  * registers slash commands.
  */
 export async function register(client: Client<true>) {
-  const perms = new Collection<
-    string,
-    ApplicationCommandPermissions[] | PermissionSetterFunction
-  >(commands.map((t) => [t.data.name, t.permissions]));
+  const perms = new Collection(
+    commandDefinitions.map((t) => [t.data.name, t.permissions])
+  );
 
   const guilds = await Promise.all(
     (await client.guilds.fetch()).map((guild) => guild.fetch())
@@ -75,24 +74,21 @@ export async function register(client: Client<true>) {
   //Register commands
   console.log('Registering commands...');
   await Promise.all(
-    commands.flatMap((e) => {
-      const coll = appCommands.ensure(
-        e.data.name,
-        () => new Collection<Snowflake, ApplicationCommand>()
-      );
+    commandDefinitions.flatMap(({ data }) => {
+      const coll = commands.ensure(data.name, () => new Collection());
       if (env.production) {
         //Global Command
         return client.application.commands
-          .create(e.data)
+          .create(data)
           .then((created) =>
-            guilds.forEach((g) => void coll.set(g.id, created))
+            guilds.forEach(({ id }) => void coll.set(id, created))
           );
       } else {
         //Guild Command
-        return guilds.map((guild) =>
+        return guilds.map(({ id }) =>
           client.application.commands
-            .create(e.data, guild.id)
-            .then((created) => void coll.set(guild.id, created))
+            .create(data, id)
+            .then((created) => void coll.set(id, created))
         );
       }
     })
@@ -100,7 +96,7 @@ export async function register(client: Client<true>) {
   console.log('Registered commands.');
 
   //Key: GuildId, Value:ModeratorRoleId
-  const roleId: Collection<Snowflake, string> = new Collection();
+  const roleId = new Collection<Snowflake, string>();
 
   //Set Command Permissions
   console.log('Setting permissions...');
@@ -125,12 +121,12 @@ export async function register(client: Client<true>) {
       }
 
       await Promise.all(
-        appCommands.map(async (c, s) => {
-          const appCommand = c.get(guild.id);
-          if (!appCommand) return;
+        commands.map(async (c, s) => {
+          const command = c.get(guild.id);
+          if (!command) return;
           const permissions = perms.get(s);
           if (!permissions) return;
-          await setPermission(appCommand, {
+          await setPermission(command, {
             client,
             guild,
             permissions,
@@ -173,16 +169,9 @@ export async function register(client: Client<true>) {
     if (!env.production) {
       //Add Guild Command
       await Promise.all(
-        commands.map(async (e) => {
-          const coll = appCommands.ensure(
-            e.data.name,
-            () => new Collection<Snowflake, ApplicationCommand>()
-          );
-          if ('id' in coll) {
-            //This should not happen.
-            return;
-          }
-          const created = await guild.commands.create(e.data);
+        commandDefinitions.map(async ({ data }) => {
+          const coll = commands.ensure(data.name, () => new Collection());
+          const created = await guild.commands.create(data);
           coll.set(guild.id, created);
         })
       );
@@ -200,12 +189,12 @@ export async function register(client: Client<true>) {
       update: {},
     });
     await Promise.all(
-      appCommands.map(async (c, s) => {
-        const appCommand = c.get(guild.id);
-        if (!appCommand) return;
-        const permissions = perms.get(s);
+      commands.map(async (c, name) => {
+        const command = c.get(guild.id);
+        if (!command) return;
+        const permissions = perms.get(name);
         if (!permissions) return;
-        await setPermission(appCommand, {
+        await setPermission(command, {
           client,
           guild,
           permissions,
@@ -242,14 +231,8 @@ export async function register(client: Client<true>) {
 
   process.on('SIGINT', async () => {
     if (!env.production) {
-      if (!guilds) {
-        //This should not happen.
-        return;
-      }
       await Promise.all(
-        guilds.map(async (guild) => {
-          await client.application.commands.set([], guild.id);
-        })
+        guilds.map((guild) => client.application.commands.set([], guild.id))
       );
     }
     process.exit(0);
@@ -267,9 +250,9 @@ export async function setPermissionByName(
   name: string,
   param: SetPermissionParameters
 ) {
-  const appCommand = appCommands.get(name)?.get(param.guild.id);
-  if (!appCommand) throw new Error('No such command found.');
-  await setPermission(appCommand, param);
+  const command = commands.get(name)?.get(param.guild.id);
+  if (!command) throw new Error('No such command found.');
+  await setPermission(command, param);
 }
 
 async function setPermission(
