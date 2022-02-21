@@ -62,7 +62,9 @@ export async function register(client: Client<true>) {
     ApplicationCommandPermissions[] | PermissionSetterFunction
   >(commands.map((t) => [t.data.name, t.permissions]));
 
-  const guilds = await client.guilds.fetch();
+  const guilds = await Promise.all(
+    (await client.guilds.fetch()).map((guild) => guild.fetch())
+  );
 
   /**
    * Remove 'ghost' command(=global commands that remains after deletion of guild command)
@@ -74,27 +76,24 @@ export async function register(client: Client<true>) {
   //Register commands
   console.log('Registering commands...');
   await Promise.all(
-    commands.map(async (e) => {
+    commands.flatMap((e) => {
       const coll = appCommands.ensure(
         e.data.name,
         () => new Collection<Snowflake, ApplicationCommand>()
       );
       if (env.production) {
         //Global Command
-        const created = await client.application.commands.create(e.data);
-        guilds.forEach((g) => {
-          coll.set(g.id, created);
-        });
+        return client.application.commands
+          .create(e.data)
+          .then((created) =>
+            guilds.forEach((g) => void coll.set(g.id, created))
+          );
       } else {
         //Guild Command
-        await Promise.all(
-          guilds.map(async (guild) => {
-            const created = await client.application.commands.create(
-              e.data,
-              guild.id
-            );
-            coll.set(guild.id, created);
-          })
+        return guilds.map((guild) =>
+          client.application.commands
+            .create(e.data, guild.id)
+            .then((created) => void coll.set(guild.id, created))
         );
       }
     })
@@ -150,9 +149,8 @@ export async function register(client: Client<true>) {
   console.log('Checking roles...');
   await Promise.all(
     guilds.map(async (guild) => {
-      const g = await guild.fetch();
       const role = roleId.get(guild.id);
-      if (role && !g.roles.cache.has(role)) {
+      if (role && !guild.roles.cache.has(role)) {
         const updateResult = await prisma.guildSettings.update({
           where: {
             guildId: guild.id,
