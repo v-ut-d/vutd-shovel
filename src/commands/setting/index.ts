@@ -2,7 +2,6 @@ import {
   ApplicationCommandData,
   CommandInteraction,
   Guild,
-  OAuth2Guild,
   Permissions,
 } from 'discord.js';
 
@@ -27,12 +26,11 @@ export const data: ApplicationCommandData = {
 /**
  * `/setting` command permission data.
  */
-export const permissions: PermissionSetterFunction = async (
+export const permissions: PermissionSetterFunction = (
   guildSettings: GuildSettings,
-  guild: OAuth2Guild | Guild
+  guild: Guild
 ) => {
-  const modRole =
-    guildSettings.moderatorRole ?? (await guild.fetch()).roles.everyone.id;
+  const modRole = guildSettings.moderatorRole ?? guild.roles.everyone.id;
   return [
     {
       type: 'ROLE',

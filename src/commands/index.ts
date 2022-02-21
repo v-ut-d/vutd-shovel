@@ -6,12 +6,11 @@ import type {
   CommandInteraction,
   Guild,
   GuildResolvable,
-  OAuth2Guild,
   Snowflake,
 } from 'discord.js';
 import { Collection } from 'discord.js';
 import { prisma } from '../database';
-import { CallOrReturn, env } from '../utils';
+import { env } from '../utils';
 import * as cancel from './cancel';
 import * as dictBulk from './dict-bulk';
 import * as emojiBulk from './emoji-bulk';
@@ -45,8 +44,8 @@ type ApplicationCommands = Collection<
 
 export type PermissionSetterFunction = (
   guildSettings: GuildSettings,
-  guild: OAuth2Guild | Guild
-) => ApplicationCommandPermissions[] | Promise<ApplicationCommandPermissions[]>;
+  guild: Guild
+) => ApplicationCommandPermissions[];
 
 /**
  * Stores the correspondence of command, guildId and ApplicationCommand
@@ -259,7 +258,7 @@ export async function register(client: Client<true>) {
 
 interface SetPermissionParameters {
   client: Client<true>;
-  guild: OAuth2Guild | Guild;
+  guild: Guild;
   permissions: PermissionSetterFunction | ApplicationCommandPermissions[];
   guildSettings: GuildSettings;
 }
@@ -269,21 +268,20 @@ export async function setPermissionByName(
   param: SetPermissionParameters
 ) {
   const appCommand = appCommands.get(name)?.get(param.guild.id);
-  if (!appCommand) return Promise.reject('No such command found.');
-  return setPermission(appCommand, param);
+  if (!appCommand) throw new Error('No such command found.');
+  await setPermission(appCommand, param);
 }
 
 async function setPermission(
   c: ApplicationCommand<{ guild: GuildResolvable }>,
-  param: SetPermissionParameters
+  { permissions, guild, guildSettings }: SetPermissionParameters
 ) {
   await c.permissions.set({
-    guild: param.guild.id,
-    permissions: await CallOrReturn(
-      param.permissions,
-      param.guildSettings,
-      param.guild
-    ),
+    guild,
+    permissions:
+      typeof permissions === 'function'
+        ? permissions(guildSettings, guild)
+        : permissions,
   });
 }
 
