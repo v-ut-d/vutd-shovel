@@ -57,9 +57,9 @@ export default class Speaker {
       const [i, j, k, l] = match.slice(1).map((str) => parseInt(str));
       return {
         htsvoice: Speaker.htsvoices[i % Speaker.htsvoices.length],
-        speech_speed_rate: 0.8 + j * 0.006,
-        additional_half_tone: Math.pow(2, k / 100) * 20 - 32,
-        weight_of_GV_for_log_F0: Math.pow(l / 50 - 1, 3) / 10 + 0.5,
+        speech_speed_rate: Math.pow(2, j / 33 - 1),
+        additional_half_tone: k / 15,
+        weight_of_GV_for_log_F0: Math.pow(2, l / 25 - 2),
       };
     } catch (_) {
       return {
@@ -67,9 +67,9 @@ export default class Speaker {
           Speaker.htsvoices[
             Math.floor(Math.random() * Speaker.htsvoices.length)
           ],
-        speech_speed_rate: 0.8 + Math.random() * 0.6,
-        additional_half_tone: Math.pow(2, Math.random()) * 20 - 32,
-        weight_of_GV_for_log_F0: Math.pow(Math.random() * 2 - 1, 3) / 10 + 0.5,
+        speech_speed_rate: Math.pow(2, Math.random() * 3 - 1),
+        additional_half_tone: Math.random() * 6,
+        weight_of_GV_for_log_F0: Math.pow(2, Math.random() * 4 - 2),
       };
     }
   }
