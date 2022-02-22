@@ -18,6 +18,9 @@ export async function guild(guild: Guild) {
 }
 
 export async function roleDelete(role: Role) {
+  if (role.tags?.botId && role.tags.botId === role.client.user?.id) {
+    return;
+  }
   commands.checkRole(role.guild).catch(console.error);
 }
 
