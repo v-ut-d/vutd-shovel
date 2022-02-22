@@ -127,16 +127,9 @@ class CommandManager<Production extends boolean> {
     await client.application.commands.set([]);
 
     await Promise.all(
-      client.guilds.cache.map(async (guild) => {
-        const commands = await guild.commands.set(
-          this.#commandDefinitions.map(({ data }) => data)
-        );
-
-        return [
-          guild.id,
-          new Collection(commands.map((command) => [command.name, command])),
-        ] as const;
-      })
+      client.guilds.cache.map((guild) => guild.commands.set(
+        this.#commandDefinitions.map(({ data }) => data)
+      ))
     );
 
     process.on('SIGINT', async () => {
