@@ -1,4 +1,4 @@
-import type { Client, Guild, Interaction } from 'discord.js';
+import type { Client, Guild, Interaction, Role } from 'discord.js';
 import commands from './commands';
 
 /**
@@ -15,6 +15,10 @@ export async function interaction(interaction: Interaction) {
 
 export async function guild(guild: Guild) {
   commands.addGuild(guild).catch(console.error);
+}
+
+export async function roleDelete(role: Role) {
+  commands.checkRole(role.guild).catch(console.error);
 }
 
 /**

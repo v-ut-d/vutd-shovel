@@ -32,17 +32,16 @@ export type PermissionSetterFunction = (
 
 class CommandManager<Production extends boolean> {
   static async #resolveGuildSettings(guild: Guild) {
-    let guildSettings =
-      await prisma.guildSettings.upsert({
-        where: {
-          guildId: guild.id
-        },
-        create: {
-          guildId: guild.id,
-          dictionaryWriteRole: guild.roles.everyone.id,
-        },
-        update: {}
-      });
+    let guildSettings = await prisma.guildSettings.upsert({
+      where: {
+        guildId: guild.id,
+      },
+      create: {
+        guildId: guild.id,
+        dictionaryWriteRole: guild.roles.everyone.id,
+      },
+      update: {},
+    });
 
     if (
       guildSettings.moderatorRole &&
@@ -120,6 +119,11 @@ class CommandManager<Production extends boolean> {
     await this.setPermission(guildSettings, guild);
   }
 
+  async checkRole(guild: Guild) {
+    const guildSettings = await CommandManager.#resolveGuildSettings(guild);
+    await this.setPermission(guildSettings, guild);
+  }
+
   async #registerDevelopment(
     this: CommandManager<false>,
     client: Client<true>
@@ -127,9 +131,9 @@ class CommandManager<Production extends boolean> {
     await client.application.commands.set([]);
 
     await Promise.all(
-      client.guilds.cache.map((guild) => guild.commands.set(
-        this.#commandDefinitions.map(({ data }) => data)
-      ))
+      client.guilds.cache.map((guild) =>
+        guild.commands.set(this.#commandDefinitions.map(({ data }) => data))
+      )
     );
 
     process.on('SIGINT', async () => {
