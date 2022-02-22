@@ -161,18 +161,16 @@ class CommandManager<Production extends boolean> {
     if (!commands) return;
 
     await Promise.all(
-      commands
-        .map(async (command, name) => {
-          // commandDefinition always exists; command comes from this source code
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          const { permissions } = this.#commandDefinitions.get(command.name)!;
-          if (!permissions) return undefined;
+      commands.map(async (command) => {
+        // commandDefinition always exists; command comes from this source code
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const { permissions } = this.#commandDefinitions.get(command.name)!;
+        if (!permissions) return undefined;
 
-          return command.permissions.set({
-            permissions: permissions(guildSettings, guild),
-          });
-        })
-        .filter((v): v is NonNullable<typeof v> => Boolean(v))
+        return command.permissions.set({
+          permissions: permissions(guildSettings, guild),
+        });
+      })
     );
   }
 
@@ -184,7 +182,7 @@ class CommandManager<Production extends boolean> {
     const { application } = guild.client;
     if (!application) return;
     await Promise.all(
-      application.commands.cache.map(async (command, name) => {
+      application.commands.cache.map(async (command) => {
         // commandDefinition always exists; command comes from this source code
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const { permissions } = this.#commandDefinitions.get(command.name)!;
