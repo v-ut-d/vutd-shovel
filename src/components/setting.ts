@@ -3,6 +3,7 @@ import BaseMessageEmbed from './base';
 
 export interface SettingMessageEmbedData {
   setting: GuildSettings;
+  moderatorRoleName: string;
   dictRoleName: string;
   numberOfEmojis: number;
   numberOfDictEntries: number;
@@ -44,6 +45,11 @@ export default class SettingMessageEmbed extends BaseMessageEmbed {
         {
           name: '読み上げ文字数上限',
           value: data.setting.omitThreshold.toString(),
+          inline: true,
+        },
+        {
+          name: '管理者ロール',
+          value: data.moderatorRoleName,
           inline: true,
         },
         {

@@ -6,6 +6,7 @@ import { ErrorMessageEmbed } from '../../components';
 import SettingMessageEmbed from '../../components/setting';
 import { prisma } from '../../database';
 import rooms from '../../rooms';
+import commands from '..';
 
 /**
  * `/setting set` command data.
@@ -40,10 +41,15 @@ export const data: ApplicationCommandSubCommandData = {
       maxValue: 10000,
     },
     {
-      name: 'dictionary_write_role',
+      name: 'moderator_role',
       type: 'ROLE',
       description:
-        '/dict set、/dict deleteを使えるユーザーのロールを指定します。',
+        '/dict-bulk、/emoji-bulk、/settingを使えるユーザーのロールを指定します。',
+    },
+    {
+      name: 'dictionary_write_role',
+      type: 'ROLE',
+      description: '/dictを使えるユーザーのロールを指定します。',
     },
   ],
 };
@@ -55,6 +61,8 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
   try {
     const setting = {
       guildId: interaction.guildId,
+      moderatorRole:
+        interaction.options.getRole('moderator_role')?.id ?? undefined,
       dictionaryWriteRole:
         interaction.options.getRole('dictionary_write_role')?.id ?? undefined,
       readSpeakersName:
@@ -83,17 +91,19 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
       await room.loadGuildSettings();
     }
 
-    let dictRoleName = '';
-    if (writtenSetting.dictionaryWriteRole) {
-      const role = await interaction.guild.roles.fetch(
-        writtenSetting.dictionaryWriteRole
-      );
-      dictRoleName =
-        role?.name ??
-        'ロールの名前を取得できませんでした。ロールが削除された可能性があります。';
-    } else {
-      dictRoleName = '@everyone';
-    }
+    const moderatorRoleName = writtenSetting.moderatorRole
+      ? `${
+          (await interaction.guild.roles.fetch(writtenSetting.moderatorRole)) ??
+          'Not Found'
+        }`
+      : 'Not set';
+
+    const dictRoleName = writtenSetting.dictionaryWriteRole
+      ? `${
+          (await interaction.guild.roles.fetch(writtenSetting.dictionaryWriteRole)) ??
+          'Not Found'
+        }`
+      : '@everyone';
 
     const numberOfEmojis = await prisma.emoji.count({
       where: {
@@ -106,10 +116,13 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
       },
     });
 
+    commands.setPermission(writtenSetting, interaction.guild);
+
     await interaction.reply({
       embeds: [
         new SettingMessageEmbed('set', {
           setting: writtenSetting,
+          moderatorRoleName,
           dictRoleName,
           numberOfEmojis,
           numberOfDictEntries,

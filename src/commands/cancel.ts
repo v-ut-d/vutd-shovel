@@ -1,8 +1,4 @@
-import type {
-  ApplicationCommandData,
-  ApplicationCommandPermissions,
-  CommandInteraction,
-} from 'discord.js';
+import type { ApplicationCommandData, CommandInteraction } from 'discord.js';
 import rooms from '../rooms';
 
 /**
@@ -12,11 +8,6 @@ export const data: ApplicationCommandData = {
   name: 'cancel',
   description: '今行っている読み上げを中断します。',
 };
-
-/**
- * `/cancel` command permission data.
- */
-export const permissions: ApplicationCommandPermissions[] = [];
 
 /**
  * handles `/cancel` command.

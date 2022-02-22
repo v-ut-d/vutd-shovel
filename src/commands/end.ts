@@ -1,8 +1,4 @@
-import type {
-  ApplicationCommandData,
-  ApplicationCommandPermissions,
-  CommandInteraction,
-} from 'discord.js';
+import type { ApplicationCommandData, CommandInteraction } from 'discord.js';
 import rooms from '../rooms';
 import { EndMessageEmbed, ErrorMessageEmbed } from '../components';
 
@@ -13,11 +9,6 @@ export const data: ApplicationCommandData = {
   name: 'end',
   description: '読み上げを終了し、ボイスチャンネルから退出します。',
 };
-
-/**
- * `/end` command permission data.
- */
-export const permissions: ApplicationCommandPermissions[] = [];
 
 /**
  * handles `/end` command.
