@@ -33,17 +33,16 @@ export type PermissionSetterFunction = (
 class CommandManager<Production extends boolean> {
   static async #resolveGuildSettings(guild: Guild) {
     let guildSettings =
-      (await prisma.guildSettings.findUnique({
+      await prisma.guildSettings.upsert({
         where: {
-          guildId: guild.id,
+          guildId: guild.id
         },
-      })) ??
-      (await prisma.guildSettings.create({
-        data: {
+        create: {
           guildId: guild.id,
           dictionaryWriteRole: guild.roles.everyone.id,
         },
-      }));
+        update: {}
+      });
 
     if (
       guildSettings.moderatorRole &&
@@ -169,7 +168,7 @@ class CommandManager<Production extends boolean> {
         .map(async (command, name) => {
           // commandDefinition always exists; command comes from this source code
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          const { permissions } = this.#commandDefinitions.get(name)!;
+          const { permissions } = this.#commandDefinitions.get(command.name)!;
           if (!permissions) return undefined;
 
           return command.permissions.set({
@@ -191,7 +190,7 @@ class CommandManager<Production extends boolean> {
       application.commands.cache.map(async (command, name) => {
         // commandDefinition always exists; command comes from this source code
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const { permissions } = this.#commandDefinitions.get(name)!;
+        const { permissions } = this.#commandDefinitions.get(command.name)!;
         if (!permissions) return undefined;
 
         return command.permissions.set({

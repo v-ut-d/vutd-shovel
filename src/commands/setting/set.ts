@@ -91,16 +91,16 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
       await room.loadGuildSettings();
     }
 
-    const moderatorRoleName = setting.moderatorRole
+    const moderatorRoleName = writtenSetting.moderatorRole
       ? `${
-          (await interaction.guild.roles.fetch(setting.moderatorRole)) ??
+          (await interaction.guild.roles.fetch(writtenSetting.moderatorRole)) ??
           'Not Found'
         }`
       : 'Not set';
 
-    const dictRoleName = setting.dictionaryWriteRole
+    const dictRoleName = writtenSetting.dictionaryWriteRole
       ? `${
-          (await interaction.guild.roles.fetch(setting.dictionaryWriteRole)) ??
+          (await interaction.guild.roles.fetch(writtenSetting.dictionaryWriteRole)) ??
           'Not Found'
         }`
       : '@everyone';
