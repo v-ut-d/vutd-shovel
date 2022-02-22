@@ -1,4 +1,6 @@
 import {
+  createAudioResource,
+  StreamType,
   AudioPlayer,
   AudioPlayerStatus,
   AudioResource,
@@ -9,6 +11,7 @@ import {
   VoiceConnection,
   VoiceConnectionStatus,
 } from '@discordjs/voice';
+import type { GuildSettings } from '@prisma/client';
 import {
   Client,
   Collection,
@@ -25,6 +28,7 @@ import { EndMessageEmbed } from '../components';
 import { prisma } from '../database';
 import ClientManager from './client';
 
+import type { Readable } from 'stream';
 /**
  * represents one reading session.
  * exists at most 1 per {@link Guild}.
@@ -43,13 +47,18 @@ export default class Room {
 
   #connection?: VoiceConnection;
   #messageCollector: MessageCollector;
-  #queue: AudioResource[] = [];
+  #synthesizing = 0;
+  #synthesisQueue: (() => Readable)[] = [];
+  #playQueue: AudioResource[] = [];
   #player: AudioPlayer;
   #preprocessor: Preprocessor;
   #speakers: Collection<Snowflake, Speaker> = new Collection();
   allocatedClient?: Client;
 
   #joinVCPromise;
+  guildSettings?: GuildSettings;
+
+  #loadGuildSettingsPromise;
 
   constructor(
     /**
@@ -76,6 +85,8 @@ export default class Room {
     });
 
     this.#preprocessor = new Preprocessor(this);
+
+    this.#loadGuildSettingsPromise = this.loadGuildSettings();
 
     voiceChannel.client.on('voiceStateUpdate', async (oldState, newState) => {
       if (
@@ -109,13 +120,18 @@ export default class Room {
     this.#joinVCPromise = this.#joinVC(this.#player);
 
     this.#messageCollector.on('collect', async (message) => {
+      if (!this.guildSettings) return;
       const speaker = await this.getOrCreateSpeaker(message.author);
-
-      const resource = speaker.synth(
-        this.#preprocessor.exec(message.cleanContent)
+      let prefix = '';
+      if (this.guildSettings.readSpeakersName) {
+        const guildMember = await this.guild.members.fetch(message.author);
+        prefix = guildMember.displayName + ' ';
+      }
+      const preprocessed = this.#preprocessor.exec(
+        prefix + message.cleanContent
       );
-      this.#queue.push(resource);
-      this.#play();
+      this.#synthesisQueue.push(speaker.synth.bind(speaker, preprocessed));
+      this.#synth();
     });
 
     process.on('SIGINT', () => {
@@ -168,6 +184,7 @@ export default class Room {
         return entersState(connection, VoiceConnectionStatus.Ready, 2000);
       }),
       this.#preprocessor.dictLoadPromise,
+      this.#loadGuildSettingsPromise,
     ]);
     return;
   }
@@ -205,9 +222,41 @@ export default class Room {
     await this.#preprocessor.loadGuildDict();
   }
 
+  async loadGuildSettings() {
+    const guildSettings = await prisma.guildSettings.upsert({
+      where: {
+        guildId: this.guildId,
+      },
+      create: {
+        guildId: this.guildId,
+        dictionaryWriteRole: this.guild.roles.everyone.id,
+      },
+      update: {},
+    });
+    this.guildSettings = guildSettings;
+  }
+
+  #synth() {
+    if (this.#synthesizing > 0) return;
+    const synth = this.#synthesisQueue.shift();
+    if (synth) {
+      this.#synthesizing += 1;
+      const stream = synth();
+      stream.once('data', () => {
+        this.#synthesizing -= 1;
+        this.#synth();
+      });
+      this.#playQueue.push(
+        createAudioResource(stream, {
+          inputType: StreamType.Raw,
+        })
+      );
+      this.#play();
+    }
+  }
   #play() {
     if (this.#player.state.status === AudioPlayerStatus.Idle) {
-      const resource = this.#queue.shift();
+      const resource = this.#playQueue.shift();
       if (resource) this.#player.play(resource);
     }
   }

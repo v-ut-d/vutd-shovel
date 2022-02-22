@@ -1,6 +1,5 @@
 import {
   ApplicationCommandData,
-  ApplicationCommandPermissions,
   Collection,
   CommandInteraction,
   Snowflake,
@@ -14,7 +13,7 @@ import { ErrorMessageEmbed, StartMessageEmbed } from '../components';
  */
 export const data: ApplicationCommandData = {
   name: 'start',
-  description: '読み上げを開始します。',
+  description: 'ボイスチャンネルに参加し、読み上げを開始します。',
   options: [
     {
       name: 'vc',
@@ -25,11 +24,6 @@ export const data: ApplicationCommandData = {
     },
   ],
 };
-
-/**
- * `/start` command permission data.
- */
-export const permissions: ApplicationCommandPermissions[] = [];
 
 /**
  * handles `/start` command.

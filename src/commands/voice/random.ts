@@ -12,7 +12,7 @@ import rooms from '../../rooms';
 export const data: ApplicationCommandSubCommandData = {
   name: 'random',
   type: 'SUB_COMMAND',
-  description: '読み上げ設定をランダムに変更します。',
+  description: '読み上げる声の設定をランダムに変更します。',
 };
 
 /**

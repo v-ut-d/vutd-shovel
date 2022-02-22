@@ -36,3 +36,13 @@ model GuildDictionary {
 
   @@id([guildId, replaceFrom])
 }
+
+model GuildSettings {
+  guildId             String  @id
+  readMultiLine       Boolean @default(true)
+  readSpeakersName    Boolean @default(false)
+  readEmojis          Boolean @default(true)
+  omitThreshold       Int     @default(200)
+  dictionaryWriteRole String
+  moderatorRole       String?
+}

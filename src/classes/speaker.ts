@@ -1,4 +1,3 @@
-import { createAudioResource, StreamType } from '@discordjs/voice';
 import type { Snowflake, User } from 'discord.js';
 import { readdirSync } from 'fs';
 import path from 'path';
@@ -157,8 +156,6 @@ export default class Speaker {
       }),
       this.debug ? console.error : undefined
     );
-    return createAudioResource(stream, {
-      inputType: StreamType.Raw,
-    });
+    return stream;
   }
 }

@@ -5,3 +5,5 @@ export { default as ErrorMessageEmbed } from './error';
 export { default as StartMessageEmbed } from './start';
 export { default as VoiceMessageEmbed } from './voice';
 export { default as DictMessageEmbed } from './dict';
+export { default as SettingMessageEmbed } from './setting';
+export { default as HelpMessageEmbed } from './help';

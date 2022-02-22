@@ -1,5 +1,5 @@
-import type { Client, Interaction } from 'discord.js';
-import * as commands from './commands';
+import type { Client, Guild, Interaction, Role } from 'discord.js';
+import commands from './commands';
 
 /**
  * handles client.on('interactionCreate') event.
@@ -11,6 +11,17 @@ export async function interaction(interaction: Interaction) {
   } catch (e) {
     console.error(e);
   }
+}
+
+export async function guild(guild: Guild) {
+  commands.addGuild(guild).catch(console.error);
+}
+
+export async function roleDelete(role: Role) {
+  if (role.tags?.botId && role.tags.botId === role.client.user?.id) {
+    return;
+  }
+  commands.checkRole(role.guild).catch(console.error);
 }
 
 /**

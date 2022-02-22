@@ -14,6 +14,8 @@ const client = new Client(clientOptions);
 
 client.on('ready', handler.ready);
 client.on('interactionCreate', handler.interaction);
+client.on('guildCreate', handler.guild);
+client.on('roleDelete', handler.roleDelete);
 
 clientManager.loginPrimary(client);
 clientManager.instantiateSecondary(clientOptions);
