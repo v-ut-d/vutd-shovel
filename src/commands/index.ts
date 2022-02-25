@@ -163,7 +163,6 @@ class CommandManager<Production extends boolean> {
     const hasChanged = await this.#hasCommandChanged(
       client.application.commands
     );
-    console.log(hasChanged);
     if (hasChanged) {
       client.application.commands.cache.clear();
       await client.application.commands.set(
