@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  postgres:
+    image: postgres:13.3
+    volumes:
+      - postgres-volume:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=vutd-shovel-password
+      - POSTGRES_USER=vutd-shovel
+      - POSTGRES_DB=vutd-shovel
+    command: postgres -c max_connections=300 -c log_min_messages=LOG
+    ports:
+      - "5432:5432"
+  vutd-shovel:
+    build: ./
+    environment:
+      - NODE_ENV=production
+      - BOT_TOKEN=bot-token
