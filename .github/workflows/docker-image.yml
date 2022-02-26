@@ -13,4 +13,13 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag vutd-shovel:${{ github.event.release.name }}
+      run: |
+        docker build . --file Dockerfile --tag vutd-shovel:${{ github.event.release.name }}
+        docker export vutd-shovel:${{ github.event.release.name }} | gzip -c > ${{ github.event.release.name }}.tar.gz
+
+    - name: Upload prebuild asset
+      uses: icrawl/action-artifact@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        path: "${{ github.event.release.name }}.tar.gz"
