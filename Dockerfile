@@ -20,7 +20,7 @@ COPY ./package*.json ./
 
 RUN sed '/prepare/d' -i package.json
 
-RUN apk add --no-cache --virtual .gyp python3 make g++ curl
+RUN apk add --no-cache --virtual .gyp python3 curl
 RUN npm ci
 RUN apk del .gyp
 
