@@ -1,5 +1,9 @@
 version: '3'
 
+volumes:
+  postgres-volume:
+    driver: local
+
 services:
   postgres:
     image: postgres:13.3
@@ -14,7 +18,10 @@ services:
       - "5432:5432"
   vutd-shovel:
     build: ./
+    command: sh -c "npx prisma migrate deploy && npm start"
     environment:
       - NODE_ENV=production
       - BOT_TOKEN=bot-token
       - DATABASE_URL=postgresql://vutd-shovel:vutd-shovel-password@postgres:5432/vutd-shovel?schema=public
+    depends_on:
+      - postgres
