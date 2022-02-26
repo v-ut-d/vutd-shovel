@@ -11,3 +11,17 @@ shovel clone for VUTD
 * [TumoiYorozu/Discord_Open_JTalk](https://github.com/TumoiYorozu/Discord_Open_JTalk)
 * [shovel](https://cod-sushi.com/shovel-how-to-use/)
 * 
+
+
+
+# Copyrights
+
+- src/data/alkana.json \
+The original data is from [alkana](https://github.com/cod-sushi/alkana.py). \
+Copyright 2019 by cod \
+Copyright 1999-2002 by Bilingual Emacspeak Project
+
+
+# License
+
+GPLv2
