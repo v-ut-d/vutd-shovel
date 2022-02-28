@@ -7,17 +7,26 @@ volumes:
 services:
   postgres:
     image: postgres:13.3
+    deploy:
+      resources:
+        limits:
+          cpus: '0.3'
+          memory: 128m
     volumes:
       - postgres-volume:/var/lib/postgresql/data
     environment:
       - POSTGRES_PASSWORD=vutd-shovel-password
       - POSTGRES_USER=vutd-shovel
       - POSTGRES_DB=vutd-shovel
-    command: postgres -c max_connections=300 -c log_min_messages=LOG
     ports:
       - "5432:5432"
   vutd-shovel:
     image: ghcr.io/v-ut-d/vutd-shovel:latest
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 128m
     volumes:
       - ./voice:/app/voice
     environment:
