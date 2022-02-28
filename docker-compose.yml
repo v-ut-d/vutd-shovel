@@ -18,6 +18,8 @@ services:
       - "5432:5432"
   vutd-shovel:
     build: ./
+    volumes:
+      - ./voice:/app/voice
     environment:
       - BOT_TOKEN=${VUTD_SHOVEL_BOT_TOKEN}
       - DATABASE_URL=postgresql://vutd-shovel:vutd-shovel-password@postgres:5432/vutd-shovel?schema=public

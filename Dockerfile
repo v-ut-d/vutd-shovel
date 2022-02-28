@@ -24,6 +24,5 @@ RUN apk add --no-cache --virtual .gyp python3 curl
 RUN npm ci
 RUN apk del .gyp
 
-COPY ./voice ./voice
 
 CMD ["npm", "start"]
