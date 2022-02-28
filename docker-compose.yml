@@ -17,7 +17,7 @@ services:
     ports:
       - "5432:5432"
   vutd-shovel:
-    build: ./
+    image: ghcr.io/v-ut-d/vutd-shovel:latest
     volumes:
       - ./voice:/app/voice
     environment:
