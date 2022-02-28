@@ -25,7 +25,7 @@
     "dev:watch": "ts-node-dev src/index.ts",
     "prepare": "husky install",
     "lint-staged": "lint-staged",
-    "start": "node dist/index.js",
+    "start": "npx prisma migrate deploy && node dist/index.js",
     "test": "jest --passWithNoTests",
     "compile-dict": "sh ./script/dict.sh",
     "prisma-setup": "prisma generate",

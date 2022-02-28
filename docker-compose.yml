@@ -18,7 +18,6 @@ services:
       - "5432:5432"
   vutd-shovel:
     build: ./
-    command: sh -c "npx prisma migrate deploy && npm start"
     environment:
       - NODE_ENV=production
       - BOT_TOKEN=${VUTD_SHOVEL_BOT_TOKEN}
