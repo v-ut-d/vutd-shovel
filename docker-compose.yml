@@ -19,7 +19,6 @@ services:
   vutd-shovel:
     build: ./
     environment:
-      - NODE_ENV=production
       - BOT_TOKEN=${VUTD_SHOVEL_BOT_TOKEN}
       - DATABASE_URL=postgresql://vutd-shovel:vutd-shovel-password@postgres:5432/vutd-shovel?schema=public
     depends_on:
