@@ -1,4 +1,4 @@
-# ts-node-template
+# vutd-shovel
 
 shovel clone for VUTD
 
