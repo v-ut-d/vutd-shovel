@@ -7,7 +7,41 @@
 2. クローン先のディレクトリで`npm i --ignore-script`を実行し、パッケージ類をインストールします。
 3. `npx prisma generate`も実行します。これによりデータベース関係の型が生成されます。
 
-### 自分のPCで動かしたい人
+### 自分のPCで動かしたい人(VSCode DevContainerを使う)
+VSCode DevContainerを用いると面倒な環境構築をスキップすることができます(Node.jsすらインストールする必要がありません)。詳細は[VSCodeのドキュメント](https://code.visualstudio.com/docs/remote/containers)を参照してください。  
+事前にVSCodeとDockerを入れておいてください。Windowsの場合DockerはHyper-Vが有効になっていると効率的に動作します。Hyper-VはHome Editionでは使えませんが、UTokyoの構成員はEducation Editionを使うことができます。詳細は[UTokyoのサイト](https://www.u-tokyo.ac.jp/adm/dics/ja/mslicense_win10.html)を参照してください。
+
+1. このリポジトリをクローンします(`main`ブランチにいることを確認してください)。
+2. VSCodeでクローンしたリポジトリを開きます。左下に`><`に似たアイコンがあるので、これをクリックし、 `Reopen in Container` を選択してください(もしくは、`Ctrl+Shift+P` や `Command+Shift+P` により `Remote-Containers: Reopen in Container` を実行します)。
+3. VSCodeがリロードされ、左下に `Dev Container: Node.js & PostgreSQL` と表示されたら成功です。これであなたは今、予めNode.jsやPostgreSQLがセットアップされたDev Containerの中にいます。
+4. `Ctrl + @` などを押してVSCode内でTerminalを開きます。 `npm i` を実行しパッケージ類をインストールします。
+5. `npx prisma generate`も実行します。これによりデータベース関係の型が生成されます。
+6. ボットを準備していきます。まずは[Discord Developer Portal](https://discord.com/developers/applications)からテスト用のボットを作成します。
+7. `Bot`を開き、`Add Bot`を押します(確認画面が出たらそのまま進んで、Botを追加してください)。
+8. `PUBLIC BOT`は`OFF`にします(別にしなくてもいいですがPUBLICにする必要はないので…)
+9. `TOKEN`をコピーします。
+10. `.env` というファイルをプロジェクトの最上部に作成し、トークンを次のように`.env`に追記します。
+```
+BOT_TOKEN=トークン
+```
+11. `OAuth2`->`URL Generator`を開き、 `SCOPES`では`bot`と`applications.commands`、`BOT PERMISSIONS`では`Send Messages`、`Send Messages in Threads`、`Embed Links`、`Connect`、`Speak`にチェックを入れ、一番下の`GENERATED URL`をコピーします。
+12. ブラウザのアドレスバーに`GENERATED URL`を貼り付けて開きます(その後は普通にテストに使うDiscordサーバーにボットを追加してください)。
+13. 次にデータベースをセットアップします。`npx prisma migrate deploy`を実行してください。
+14. 音声データをセットアップします。[tohoku-f01](https://github.com/icn-lab/htsvoice-tohoku-f01)を使う場合、voiceフォルダを次のように作成します。
+```
+/voice
+  └ tohoku-f01
+      ├ tohoku-f01-angry.htsvoice
+      ├ tohoku-f01-happy.htsvoice
+      ├ tohoku-f01-neutral.htsvoice
+      └ tohoku-f01-sad.htsvoice
+```
+15. ここまでの作業が終われば、`npm run dev:watch`でボットを実行できるはずです。お疲れさまでした。
+
+
+### 自分のPCで動かしたい人(VSCode DevContainerを使わない)
+PCのパフォーマンスの都合などによりDevContainerを使わない場合はこちらを参照してください。
+
 1. このリポジトリをクローンします(`main`ブランチにいることを確認してください)。
 2. クローン先のディレクトリで`npm i`を実行し、パッケージ類をインストールします。
 3. `npx prisma generate`も実行します。これによりデータベース関係の型が生成されます。
