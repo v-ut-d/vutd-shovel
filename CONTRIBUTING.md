@@ -39,19 +39,18 @@
   ```
 
 6. ボットを準備していきます。まずは[Discord Developer Portal](https://discord.com/developers/applications)からテスト用のボットを作成します。
-7. `OAuth2`->`URL Generator`を開き、 `SCOPES`では`bot`と`applications.commands`、`BOT PERMISSIONS`では`Send Messages`、`Send Messages in Threads`、`Embed Links`、`Connect`、`Speak`にチェックを入れ、一番下の`GENERATED URL`をコピーします。
-8. ブラウザのアドレスバーに`GENERATED URL`を貼り付けて開きます(その後は普通にテストに使うDiscordサーバーにボットを追加してください)。
-9. Discord Developer Portalに戻ります。`Bot`を開いてください。
-10. `Add Bot`を押します(確認画面が出たらそのまま進んで、Botを追加してください)。
-11. `PUBLIC BOT`は`OFF`にします(別にしなくてもいいですがPUBLICにする必要はないので…)
-12. `TOKEN`をコピーします。
-13. トークンを次のように`.env`に追記します。
+7. `Bot`を開き、`Add Bot`を押します(確認画面が出たらそのまま進んで、Botを追加してください)。
+8. `PUBLIC BOT`は`OFF`にします(別にしなくてもいいですがPUBLICにする必要はないので…)
+9. `TOKEN`をコピーします。
+10. トークンを次のように`.env`に追記します。
 ```
 BOT_TOKEN=トークン
 ```
-14. (ここまでで`.env`は書き終わりました)
-15. 次にデータベースをセットアップします。`npx prisma deploy`を実行してください。
-16. 音声データをセットアップします。[tohoku-f01](https://github.com/icn-lab/htsvoice-tohoku-f01)を使う場合、voiceフォルダを次のように作成します。
+11. (ここまでで`.env`は書き終わりました)
+12. `OAuth2`->`URL Generator`を開き、 `SCOPES`では`bot`と`applications.commands`、`BOT PERMISSIONS`では`Send Messages`、`Send Messages in Threads`、`Embed Links`、`Connect`、`Speak`にチェックを入れ、一番下の`GENERATED URL`をコピーします。
+13. ブラウザのアドレスバーに`GENERATED URL`を貼り付けて開きます(その後は普通にテストに使うDiscordサーバーにボットを追加してください)。
+14. 次にデータベースをセットアップします。`npx prisma migrate deploy`を実行してください。
+15. 音声データをセットアップします。[tohoku-f01](https://github.com/icn-lab/htsvoice-tohoku-f01)を使う場合、voiceフォルダを次のように作成します。
 ```
 /voice
   └ tohoku-f01
@@ -60,4 +59,4 @@ BOT_TOKEN=トークン
       ├ tohoku-f01-neutral.htsvoice
       └ tohoku-f01-sad.htsvoice
 ```
-17. ここまでの作業が終われば、`npm run dev:watch`でボットを実行できるはずです。お疲れさまでした。
+16. ここまでの作業が終われば、`npm run dev:watch`でボットを実行できるはずです。お疲れさまでした。
