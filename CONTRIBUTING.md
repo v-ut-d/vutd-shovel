@@ -9,7 +9,11 @@
 
 ### 自分のPCで動かしたい人(VSCode DevContainerを使う)
 VSCode DevContainerを用いると面倒な環境構築をスキップすることができます(Node.jsすらインストールする必要がありません)。詳細は[VSCodeのドキュメント](https://code.visualstudio.com/docs/remote/containers)を参照してください。  
-事前にVSCodeとDockerを入れておいてください。Windowsの場合DockerはHyper-Vが有効になっていると効率的に動作します。Hyper-VはHome Editionでは使えませんが、UTokyoの構成員はEducation Editionを使うことができます。詳細は[UTokyoのサイト](https://www.u-tokyo.ac.jp/adm/dics/ja/mslicense_win10.html)を参照してください。
+事前にVSCodeとDockerを入れておいてください。
+
+Windowsを使っている場合、Hyper-Vを有効にするとDockerが効率的に動作します。(ただし、Home Editionでは、Hyper-Vが使えません。)
+
+※東京大学の学生はEducation Editionを使うことができます。詳細は[東京大学のサイト](https://www.u-tokyo.ac.jp/adm/dics/ja/mslicense_win10.html)を参照してください。
 
 1. このリポジトリをクローンします(`main`ブランチにいることを確認してください)。
 2. VSCodeでクローンしたリポジトリを開きます。左下に`><`に似たアイコンがあるので、これをクリックし、 `Reopen in Container` を選択してください(もしくは、`Ctrl+Shift+P` や `Command+Shift+P` により `Remote-Containers: Reopen in Container` を実行します)。
