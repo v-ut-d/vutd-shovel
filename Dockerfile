@@ -1,14 +1,20 @@
-FROM node AS builder
+FROM node:16-bullseye-slim AS base
+RUN apt-get update -y&&apt-get install -y openssl\
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+
+FROM base AS builder
 
 WORKDIR /app
 COPY ./package*.json ./tsconfig.json ./prisma/schema.prisma ./
 
-RUN npm i --ignore-scripts
+RUN npm ci --ignore-scripts
 
 COPY ./src ./src
 RUN npm run build
 
-FROM node:alpine AS runner
+FROM base AS runner
 
 WORKDIR /app
 ENV NODE_ENV production
@@ -20,10 +26,13 @@ COPY ./package*.json ./
 
 RUN sed '/prepare/d' -i package.json
 
-RUN apk add --no-cache --virtual .gyp python3 make g++ curl
+RUN apt-get update -y&&apt-get install -y python3 curl g++ make \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 RUN npm ci
-RUN apk del .gyp
+RUN apt-get remove -y python3 curl g++ make \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-COPY ./voice ./voice
 
 CMD ["npm", "start"]

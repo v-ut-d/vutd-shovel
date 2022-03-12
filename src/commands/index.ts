@@ -1,10 +1,12 @@
 import type { GuildSettings } from '@prisma/client';
 import type {
   ApplicationCommandData,
+  ApplicationCommandManager,
   ApplicationCommandPermissions,
   Client,
   CommandInteraction,
   Guild,
+  GuildApplicationCommandManager,
 } from 'discord.js';
 import { Collection } from 'discord.js';
 import { prisma } from '../database';
@@ -124,6 +126,20 @@ class CommandManager<Production extends boolean> {
     await this.setPermission(guildSettings, guild);
   }
 
+  async #hasCommandChanged(
+    commands: ApplicationCommandManager | GuildApplicationCommandManager
+  ) {
+    const currentCommands = await commands.fetch({});
+    return (
+      currentCommands.size !== this.#commandDefinitions.size ||
+      currentCommands.some((command) => {
+        const definition = this.#commandDefinitions.get(command.name);
+        if (!definition?.data) return true;
+        return !command.equals(definition.data);
+      })
+    );
+  }
+
   async #registerDevelopment(
     this: CommandManager<false>,
     client: Client<true>
@@ -131,25 +147,28 @@ class CommandManager<Production extends boolean> {
     await client.application.commands.set([]);
 
     await Promise.all(
-      client.guilds.cache.map((guild) =>
-        guild.commands.set(this.#commandDefinitions.map(({ data }) => data))
-      )
+      client.guilds.cache.map(async (guild) => {
+        const hasChanged = await this.#hasCommandChanged(guild.commands);
+        if (hasChanged) {
+          guild.commands.cache.clear();
+          await guild.commands.set(
+            this.#commandDefinitions.map(({ data }) => data)
+          );
+        }
+      })
     );
-
-    process.on('SIGINT', async () => {
-      await Promise.all(
-        client.guilds.cache.map((guild) =>
-          client.application.commands.set([], guild.id)
-        )
-      );
-      process.exit(0);
-    });
   }
 
   async #registerProduction(this: CommandManager<true>, client: Client<true>) {
-    await client.application.commands.set(
-      this.#commandDefinitions.map(({ data }) => data)
+    const hasChanged = await this.#hasCommandChanged(
+      client.application.commands
     );
+    if (hasChanged) {
+      client.application.commands.cache.clear();
+      await client.application.commands.set(
+        this.#commandDefinitions.map(({ data }) => data)
+      );
+    }
   }
 
   async #setPermissionDevelopment(

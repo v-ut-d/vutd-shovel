@@ -80,7 +80,7 @@ export default class Room {
       debug: true,
     });
 
-    this.#player.on('stateChange', (_, state) => {
+    this.#player.on<'stateChange'>('stateChange', (_, state) => {
       if (state.status === AudioPlayerStatus.Idle) this.#play();
     });
 

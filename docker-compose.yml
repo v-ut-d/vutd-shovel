@@ -1,0 +1,27 @@
+version: '3'
+
+volumes:
+  postgres-volume:
+    driver: local
+
+services:
+  postgres:
+    image: postgres:13.3
+    volumes:
+      - postgres-volume:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=vutd-shovel-password
+      - POSTGRES_USER=vutd-shovel
+      - POSTGRES_DB=vutd-shovel
+    command: postgres -c max_connections=300 -c log_min_messages=LOG
+    ports:
+      - "5432:5432"
+  vutd-shovel:
+    image: ghcr.io/v-ut-d/vutd-shovel:latest
+    volumes:
+      - ./voice:/app/voice
+    environment:
+      - BOT_TOKEN=${VUTD_SHOVEL_BOT_TOKEN}
+      - DATABASE_URL=postgresql://vutd-shovel:vutd-shovel-password@postgres:5432/vutd-shovel?schema=public
+    depends_on:
+      - postgres
