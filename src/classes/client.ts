@@ -82,9 +82,10 @@ export default class ClientManager {
       c.push(client);
     }
   }
-  static async getAltGuild(guild: Guild, client: Client) {
-    return client.guilds.fetch({
-      guild: guild.id,
-    });
+  static getAltGuild(guild: Guild, client: Client) {
+    const n = { ...guild, client };
+    const d = Object.getOwnPropertyDescriptors(Guild.prototype);
+    Object.defineProperties(n, d);
+    return n;
   }
 }

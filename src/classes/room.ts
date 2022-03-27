@@ -45,7 +45,7 @@ export default class Room {
    */
   guildId: Snowflake;
 
-  #connection?: VoiceConnection;
+  #connection: VoiceConnection;
   #messageCollector: MessageCollector;
   #synthesizing = 0;
   #synthesisQueue: (() => Readable)[] = [];
@@ -55,11 +55,18 @@ export default class Room {
   #speakers: Collection<Snowflake, Speaker> = new Collection();
   allocatedClient?: Client;
 
-  #joinVCPromise;
   guildSettings?: GuildSettings;
 
   #loadGuildSettingsPromise;
 
+  /**
+   * Creates an instance of Room.
+   * Responsible for freeing allocated client,
+   * when an exception is thrown.
+   * @param {VoiceBasedChannel} voiceChannel
+   * @param {GuildTextBasedChannel} textChannel
+   * @memberof Room
+   */
   constructor(
     /**
      * voice channel that this room is bound to.
@@ -73,6 +80,31 @@ export default class Room {
     this.guild = voiceChannel.guild;
     this.guildId = voiceChannel.guildId;
 
+    const client = (this.allocatedClient = clientManager.allocateClient(
+      this.guildId
+    ));
+    if (!client || !client.user?.id) {
+      throw new Error('Could not find any usable client.');
+    }
+    const guild = ClientManager.getAltGuild(this.guild, client);
+
+    const groups = getGroups();
+    const userConnections = groups.get(client.user.id);
+    if (userConnections) {
+      groups.set('default', userConnections);
+    } else {
+      const newUserConnections = new Map();
+      groups.set(client.user.id, newUserConnections);
+      groups.set('default', newUserConnections);
+    }
+
+    this.#connection = joinVoiceChannel({
+      channelId: voiceChannel.id,
+      guildId: voiceChannel.guildId,
+      adapterCreator: guild.voiceAdapterCreator,
+      debug: true,
+    });
+
     this.#player = new AudioPlayer({
       behaviors: {
         noSubscriber: NoSubscriberBehavior.Stop,
@@ -84,6 +116,8 @@ export default class Room {
       if (state.status === AudioPlayerStatus.Idle) this.#play();
     });
 
+    this.#connection.subscribe(this.#player);
+
     this.#preprocessor = new Preprocessor(this);
 
     this.#loadGuildSettingsPromise = this.loadGuildSettings();
@@ -93,8 +127,8 @@ export default class Room {
         oldState.guild.id === voiceChannel.guildId &&
         oldState.channelId === voiceChannel.id &&
         newState.channelId === null && //disconnect
-        voiceChannel.client.user?.id &&
-        voiceChannel.members.has(voiceChannel.client.user?.id) &&
+        client.user?.id &&
+        voiceChannel.members.has(client.user?.id) &&
         voiceChannel.members.size === 1
       ) {
         //no member now. leaving the channel.
@@ -116,8 +150,6 @@ export default class Room {
         !message.cleanContent.startsWith(';') &&
         !message.author.bot,
     });
-
-    this.#joinVCPromise = this.#joinVC(this.#player);
 
     this.#messageCollector.on('collect', async (message) => {
       if (!this.guildSettings) return;
@@ -144,45 +176,13 @@ export default class Room {
     });
   }
 
-  async #joinVC(player: AudioPlayer) {
-    const client = (this.allocatedClient = clientManager.allocateClient(
-      this.guildId
-    ));
-    if (!client || !client.user?.id) {
-      return Promise.reject(new Error('Could not find any usable client.'));
-    }
-    const guild = await ClientManager.getAltGuild(this.guild, client);
-
-    const groups = getGroups();
-    const userConnections = groups.get(client.user.id);
-    if (userConnections) {
-      groups.set('default', userConnections);
-    } else {
-      const newUserConnections = new Map();
-      groups.set(client.user.id, newUserConnections);
-      groups.set('default', newUserConnections);
-    }
-
-    this.#connection = joinVoiceChannel({
-      channelId: this.voiceChannel.id,
-      guildId: this.voiceChannel.guildId,
-      adapterCreator: guild.voiceAdapterCreator,
-      debug: true,
-    });
-
-    this.#connection.subscribe(player);
-    return this.#connection;
-  }
-
   /**
    * @returns promise that resolves when bot successfully connected
    * and rejects when bot could connect within 2 secs.
    */
   async ready() {
     await Promise.all([
-      this.#joinVCPromise.then((connection: VoiceConnection) => {
-        return entersState(connection, VoiceConnectionStatus.Ready, 2000);
-      }),
+      entersState(this.#connection, VoiceConnectionStatus.Ready, 2000),
       this.#preprocessor.dictLoadPromise,
       this.#loadGuildSettingsPromise,
     ]);
