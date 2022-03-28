@@ -91,7 +91,7 @@ export class RoomManager {
     return room;
   }
   public destroyAll() {
-    this.cache.each((room) => room.destroy());
+    this.cache.forEach((_, guildId) => this.destroy(guildId));
   }
 }
 
