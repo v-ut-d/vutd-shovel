@@ -4,9 +4,11 @@ import {
   StageChannel,
   User,
   VoiceChannel,
+  VoiceState,
   type Snowflake,
 } from 'discord.js';
 import { Room } from './classes';
+import { EndMessageEmbed } from './components';
 
 export class RoomManager {
   /**
@@ -53,6 +55,33 @@ export class RoomManager {
     const room = this.cache.get(guildId);
     if (!room) throw new Error('現在読み上げ中ではありません。');
     return await room.getOrCreateSpeaker(user);
+  }
+  public async onVoiceStateUpdate(oldState: VoiceState, newState: VoiceState) {
+    const room = this.cache.get(newState.guild.id);
+    if (!room) return;
+    if (
+      room.voiceChannel.client.user?.id &&
+      !room.voiceChannel.members.has(room.voiceChannel.client.user?.id)
+    ) {
+      this.destroy(newState.guild.id);
+      await room.textChannel.send({
+        embeds: [new EndMessageEmbed(room, '切断されたため、')],
+      });
+    }
+    if (
+      oldState.channelId === room.voiceChannel.id &&
+      newState.channelId === null && //disconnect
+      room.voiceChannel.client.user?.id &&
+      room.voiceChannel.members.has(room.voiceChannel.client.user?.id) &&
+      room.voiceChannel.members.size === 1
+    ) {
+      this.destroy(newState.guild.id);
+      await room.textChannel.send({
+        embeds: [
+          new EndMessageEmbed(room, 'ボイスチャンネルに誰もいなくなったため、'),
+        ],
+      });
+    }
   }
   public destroy(guildId: Snowflake) {
     const room = this.cache.get(guildId);

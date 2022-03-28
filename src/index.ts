@@ -14,6 +14,7 @@ client.on('ready', handler.ready);
 client.on('interactionCreate', handler.interaction);
 client.on('guildCreate', handler.guild);
 client.on('roleDelete', handler.roleDelete);
+client.on('voiceStateUpdate', handler.voiceStateUpdate);
 
 process.on('exit', handler.onExit);
 process.on('SIGINT', handler.onExit);

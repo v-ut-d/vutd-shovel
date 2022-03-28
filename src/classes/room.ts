@@ -89,28 +89,6 @@ export default class Room {
 
     this.#loadGuildSettingsPromise = this.loadGuildSettings();
 
-    voiceChannel.client.on('voiceStateUpdate', async (oldState, newState) => {
-      if (
-        oldState.guild.id === voiceChannel.guildId &&
-        oldState.channelId === voiceChannel.id &&
-        newState.channelId === null && //disconnect
-        voiceChannel.client.user?.id &&
-        voiceChannel.members.has(voiceChannel.client.user?.id) &&
-        voiceChannel.members.size === 1
-      ) {
-        //no member now. leaving the channel.
-        await textChannel.send({
-          embeds: [
-            new EndMessageEmbed(
-              this,
-              'ボイスチャンネルに誰もいなくなったため、'
-            ),
-          ],
-        });
-        this.destroy();
-      }
-    });
-
     this.#messageCollector = textChannel.createMessageCollector({
       filter: (message) =>
         message.cleanContent !== '' &&
