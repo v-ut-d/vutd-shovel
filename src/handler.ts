@@ -33,7 +33,11 @@ export async function voiceStateUpdate(
 }
 
 export function onExit() {
-  rooms.destroyAll();
+  try {
+    rooms.destroyAll();
+  } catch (e) {
+    console.error(e);
+  }
 }
 
 /**
