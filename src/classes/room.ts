@@ -21,7 +21,6 @@ import {
   VoiceBasedChannel,
 } from 'discord.js';
 import { Preprocessor, Speaker } from '.';
-import { EndMessageEmbed } from '../components';
 import { prisma } from '../database';
 import type { Readable } from 'stream';
 /**
@@ -212,9 +211,11 @@ export default class Room {
    * disconnects from voice channel and stop collecting messages.
    */
   destroy() {
+    this.#messageCollector.removeAllListeners();
+    this.#messageCollector.stop();
+    this.#player.removeAllListeners();
     if (this.#connection.state.status !== VoiceConnectionStatus.Destroyed) {
       this.#connection.destroy();
     }
-    this.#messageCollector.stop();
   }
 }
