@@ -49,10 +49,7 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
           )
         );
 
-      const room = rooms.get(interaction.guildId);
-      if (room) {
-        await room.reloadEmojiDict();
-      }
+      await rooms.reloadEmojiDict(interaction.guildId);
 
       const toWord = emoji.pronounciation;
       await interaction.reply({
@@ -75,10 +72,7 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
           )
         );
 
-      const room = rooms.get(interaction.guildId);
-      if (room) {
-        await room.reloadGuildDict();
-      }
+      await rooms.reloadGuildDict(interaction.guildId);
 
       const toWord = entry.replaceTo;
       await interaction.reply({

@@ -15,11 +15,7 @@ export const data: ApplicationCommandData = {
  */
 export async function handle(interaction: CommandInteraction<'cached'>) {
   try {
-    const room = rooms.get(interaction.guildId);
-    if (!room) throw new Error('現在読み上げ中ではありません。');
-
-    room.destroy();
-    rooms.delete(interaction.guildId);
+    const room = rooms.destroy(interaction.guildId);
     await interaction.reply({
       embeds: [new EndMessageEmbed(room)],
     });

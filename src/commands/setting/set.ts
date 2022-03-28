@@ -86,10 +86,7 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
       update: setting,
     });
 
-    const room = rooms.get(interaction.guildId);
-    if (room) {
-      await room.loadGuildSettings();
-    }
+    await rooms.loadGuildSettings(interaction.guildId);
 
     const moderatorRoleName = writtenSetting.moderatorRole
       ? `${
@@ -100,8 +97,9 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
 
     const dictRoleName = writtenSetting.dictionaryWriteRole
       ? `${
-          (await interaction.guild.roles.fetch(writtenSetting.dictionaryWriteRole)) ??
-          'Not Found'
+          (await interaction.guild.roles.fetch(
+            writtenSetting.dictionaryWriteRole
+          )) ?? 'Not Found'
         }`
       : '@everyone';
 

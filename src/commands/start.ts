@@ -1,6 +1,5 @@
 import type { ApplicationCommandData, CommandInteraction } from 'discord.js';
 import rooms from '../rooms';
-import { Room } from '../classes';
 import { ErrorMessageEmbed, StartMessageEmbed } from '../components';
 
 /**
@@ -37,11 +36,7 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
     const me = interaction.guild.me;
     if (!me) throw new Error('データを取得できませんでした。');
 
-    const room = new Room(voiceChannel, textChannel);
-    await room.ready().catch(() => {
-      room.destroy();
-      throw new Error('ボイスチャンネルへの接続時にエラーが発生しました。');
-    });
+    const room = await rooms.create(voiceChannel, textChannel);
 
     const surpressed =
       voiceChannel.type === 'GUILD_STAGE_VOICE' &&
@@ -54,7 +49,6 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
     await interaction.reply({
       embeds: [new StartMessageEmbed(room, surpressed)],
     });
-    rooms.set(interaction.guildId, room);
   } catch (e) {
     await interaction.reply({
       embeds: [new ErrorMessageEmbed('読み上げを開始できませんでした。', e)],
