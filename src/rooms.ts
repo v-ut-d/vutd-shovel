@@ -35,21 +35,18 @@ export class RoomManager {
   }
   public async reloadEmojiDict(guildId: Snowflake) {
     const room = this.cache.get(guildId);
-    if (room) {
-      await room.reloadEmojiDict();
-    }
+    if (!room) return;
+    await room.reloadEmojiDict();
   }
   public async reloadGuildDict(guildId: Snowflake) {
     const room = this.cache.get(guildId);
-    if (room) {
-      await room.reloadGuildDict();
-    }
+    if (!room) return;
+    await room.reloadGuildDict();
   }
   public async loadGuildSettings(guildId: Snowflake) {
     const room = this.cache.get(guildId);
-    if (room) {
-      await room.loadGuildSettings();
-    }
+    if (!room) return;
+    await room.loadGuildSettings();
   }
   public async getOrCreateSpeaker(guildId: Snowflake, user: User) {
     const room = this.cache.get(guildId);
