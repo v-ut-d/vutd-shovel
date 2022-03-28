@@ -132,12 +132,6 @@ export default class Room {
       this.#synthesisQueue.push(speaker.synth.bind(speaker, preprocessed));
       this.#synth();
     });
-
-    process.on('SIGINT', () => {
-      if (this.#connection.state.status !== VoiceConnectionStatus.Destroyed)
-        this.#connection.destroy();
-      process.exit(0);
-    });
   }
 
   /**

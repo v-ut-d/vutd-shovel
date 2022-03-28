@@ -61,6 +61,9 @@ export class RoomManager {
     this.cache.delete(guildId);
     return room;
   }
+  public destroyAll() {
+    this.cache.each((room) => room.destroy());
+  }
 }
 
 const rooms = new RoomManager();
