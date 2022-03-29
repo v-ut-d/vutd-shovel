@@ -1,4 +1,4 @@
-import type { Client, Guild, Interaction, Role, VoiceState } from 'discord.js';
+import type { Client, Guild, Interaction, Role } from 'discord.js';
 import commands from './commands';
 import rooms from './rooms';
 
@@ -25,12 +25,7 @@ export async function roleDelete(role: Role) {
   commands.checkRole(role.guild).catch(console.error);
 }
 
-export async function voiceStateUpdate(
-  oldState: VoiceState,
-  newState: VoiceState
-) {
-  await rooms.onVoiceStateUpdate(oldState, newState);
-}
+export const voiceStateUpdate = rooms.onVoiceStateUpdate;
 
 export function onExit() {
   try {
