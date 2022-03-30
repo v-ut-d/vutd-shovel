@@ -54,10 +54,10 @@ export const data: ApplicationCommandSubCommandData = {
  */
 export async function handle(interaction: CommandInteraction<'cached'>) {
   try {
-    const room = rooms.get(interaction.guildId);
-    if (!room) throw new Error('現在読み上げ中ではありません。');
-
-    const speaker = await room.getOrCreateSpeaker(interaction.user);
+    const speaker = await rooms.getOrCreateSpeaker(
+      interaction.guildId,
+      interaction.user
+    );
     speaker.options = {
       htsvoice: interaction.options.getString('htsvoice') ?? undefined,
       tone: interaction.options.getNumber('tone') ?? undefined,

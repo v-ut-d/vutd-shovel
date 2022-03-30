@@ -21,7 +21,6 @@ import {
   VoiceBasedChannel,
 } from 'discord.js';
 import { Preprocessor, Speaker } from '.';
-import { EndMessageEmbed } from '../components';
 import { prisma } from '../database';
 import type { Readable } from 'stream';
 /**
@@ -89,28 +88,6 @@ export default class Room {
 
     this.#loadGuildSettingsPromise = this.loadGuildSettings();
 
-    voiceChannel.client.on('voiceStateUpdate', async (oldState, newState) => {
-      if (
-        oldState.guild.id === voiceChannel.guildId &&
-        oldState.channelId === voiceChannel.id &&
-        newState.channelId === null && //disconnect
-        voiceChannel.client.user?.id &&
-        voiceChannel.members.has(voiceChannel.client.user?.id) &&
-        voiceChannel.members.size === 1
-      ) {
-        //no member now. leaving the channel.
-        await textChannel.send({
-          embeds: [
-            new EndMessageEmbed(
-              this,
-              'ボイスチャンネルに誰もいなくなったため、'
-            ),
-          ],
-        });
-        this.destroy();
-      }
-    });
-
     this.#messageCollector = textChannel.createMessageCollector({
       filter: (message) =>
         message.cleanContent !== '' &&
@@ -131,12 +108,6 @@ export default class Room {
       );
       this.#synthesisQueue.push(speaker.synth.bind(speaker, preprocessed));
       this.#synth();
-    });
-
-    process.on('SIGINT', () => {
-      if (this.#connection.state.status !== VoiceConnectionStatus.Destroyed)
-        this.#connection.destroy();
-      process.exit(0);
     });
   }
 
@@ -240,9 +211,11 @@ export default class Room {
    * disconnects from voice channel and stop collecting messages.
    */
   destroy() {
+    this.#messageCollector.removeAllListeners();
+    this.#messageCollector.stop();
+    this.#player.removeAllListeners();
     if (this.#connection.state.status !== VoiceConnectionStatus.Destroyed) {
       this.#connection.destroy();
     }
-    this.#messageCollector.stop();
   }
 }

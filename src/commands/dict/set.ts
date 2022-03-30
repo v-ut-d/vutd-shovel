@@ -63,10 +63,7 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
           throw new Error('データベースへの登録に失敗しました。');
         });
 
-      const room = rooms.get(interaction.guildId);
-      if (room) {
-        await room.reloadEmojiDict();
-      }
+      await rooms.reloadEmojiDict(interaction.guildId);
     } else {
       await prisma.guildDictionary
         .upsert({
@@ -89,10 +86,7 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
           throw new Error('データベースへの登録に失敗しました。');
         });
 
-      const room = rooms.get(interaction.guildId);
-      if (room) {
-        await room.reloadGuildDict();
-      }
+      await rooms.reloadGuildDict(interaction.guildId);
     }
     await interaction.reply({
       embeds: [new DictMessageEmbed('set', fromWord, toWord)],
