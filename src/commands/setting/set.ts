@@ -86,10 +86,7 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
       update: setting,
     });
 
-    const roomCollection = rooms.get(interaction.guildId);
-    if (roomCollection) {
-      await Promise.all(roomCollection.map((room) => room.loadGuildSettings()));
-    }
+    await rooms.loadGuildSettings(interaction.guildId);
 
     const moderatorRoleName = writtenSetting.moderatorRole
       ? `${

@@ -1,20 +1,20 @@
 {
   "devDependencies": {
     "@types/jest": "^27.4.1",
-    "@typescript-eslint/eslint-plugin": "^5.14.0",
-    "@typescript-eslint/parser": "^5.14.0",
-    "eslint": "^8.10.0",
+    "@typescript-eslint/eslint-plugin": "^5.17.0",
+    "@typescript-eslint/parser": "^5.17.0",
+    "eslint": "^8.12.0",
     "eslint-config-prettier": "^8.5.0",
     "husky": "^7.0.0",
     "jest": "^27.5.1",
-    "lint-staged": "^12.3.5",
+    "lint-staged": "^12.3.7",
     "npm-run-all": "^4.1.5",
-    "prettier": "^2.5.1",
-    "prisma": "^3.10.0",
-    "ts-jest": "^27.1.3",
+    "prettier": "^2.6.1",
+    "prisma": "^3.11.1",
+    "ts-jest": "^27.1.4",
     "ts-node": "^10.7.0",
     "ts-node-dev": "^1.1.8",
-    "typescript": "^4.6.2"
+    "typescript": "^4.6.3"
   },
   "license": "MIT",
   "main": "dist/index.js",
@@ -49,11 +49,11 @@
     "@cm-ayf/readenv": "^1.1.0",
     "@discordjs/opus": "^0.7.0",
     "@discordjs/voice": "^0.8.0",
-    "@prisma/client": "^3.10.0",
+    "@prisma/client": "^3.11.1",
     "axios": "^0.26.1",
     "discord.js": "^13.6.0",
     "dotenv": "^16.0.0",
-    "libsodium-wrappers": "^0.7.9",
+    "libsodium-wrappers": "^0.7.10",
     "node-openjtalk-binding": "git+https://github.com/v-ut-d/node-openjtalk-binding.git",
     "node-openjtalk-binding-discordjs": "^1.1.0"
   }

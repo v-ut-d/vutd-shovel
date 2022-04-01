@@ -1,11 +1,5 @@
-import {
-  ApplicationCommandData,
-  Collection,
-  CommandInteraction,
-  Snowflake,
-} from 'discord.js';
+import type { ApplicationCommandData, CommandInteraction } from 'discord.js';
 import rooms from '../rooms';
-import { Room } from '../classes';
 import { ErrorMessageEmbed, StartMessageEmbed } from '../components';
 
 /**
@@ -42,13 +36,9 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
     const me = interaction.guild.me;
     if (!me) throw new Error('データを取得できませんでした。');
 
-    const room = new Room(voiceChannel, textChannel);
-    await room.ready().catch(() => {
-      room.destroy();
-      throw new Error('ボイスチャンネルへの接続時にエラーが発生しました。');
-    });
+    const room = await rooms.create(voiceChannel, textChannel);
 
-    if (!room.allocatedClient?.user?.id) {
+    if (!room.client.user?.id) {
       room.destroy();
       throw new Error(
         'ボットをボイスチャンネルに割り当てることに失敗しました。' +
@@ -63,13 +53,6 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
         () => false,
         () => true
       ));
-
-    const roomCollection =
-      rooms.get(interaction.guildId) ?? new Collection<Snowflake, Room>();
-    roomCollection.set(room.allocatedClient.user.id, room);
-    if (!rooms.has(interaction.guildId)) {
-      rooms.set(interaction.guildId, roomCollection);
-    }
 
     await interaction.reply({
       embeds: [new StartMessageEmbed(room, surpressed)],

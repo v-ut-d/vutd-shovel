@@ -54,24 +54,21 @@ export const data: ApplicationCommandSubCommandData = {
  */
 export async function handle(interaction: CommandInteraction<'cached'>) {
   try {
-    const roomCollection = rooms.get(interaction.guildId);
-    const roomFirst = roomCollection?.first();
-    if (!roomCollection || !roomFirst)
-      throw new Error('現在読み上げ中ではありません。');
-
-    const speakerFirst = await roomFirst.getOrCreateSpeaker(interaction.user);
-    speakerFirst.options = {
+    const speaker = await rooms.getOrCreateSpeaker(
+      interaction.guildId,
+      interaction.user
+    );
+    speaker.options = {
       htsvoice: interaction.options.getString('htsvoice') ?? undefined,
       tone: interaction.options.getNumber('tone') ?? undefined,
       speed: interaction.options.getNumber('speed') ?? undefined,
       f0: interaction.options.getNumber('f0') ?? undefined,
     };
 
-    Promise.all(
-      roomCollection.map(async (room) => {
-        const speaker = await room.getOrCreateSpeaker(interaction.user);
-        speaker.options = speakerFirst.options;
-      })
+    await rooms.setSpeakerOption(
+      interaction.guildId,
+      interaction.user,
+      speaker.options
     );
 
     await prisma.member.update({
@@ -81,10 +78,10 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
           userId: interaction.user.id,
         },
       },
-      data: speakerFirst.options,
+      data: speaker.options,
     });
     await interaction.reply({
-      embeds: [new VoiceMessageEmbed('set', speakerFirst.options)],
+      embeds: [new VoiceMessageEmbed('set', speaker.options)],
     });
   } catch (e) {
     await interaction.reply({

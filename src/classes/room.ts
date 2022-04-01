@@ -24,7 +24,6 @@ import {
 } from 'discord.js';
 import { Preprocessor, Speaker } from '.';
 import { clientManager } from '../clientManager';
-import { EndMessageEmbed } from '../components';
 import { prisma } from '../database';
 import ClientManager from './client';
 
@@ -53,7 +52,7 @@ export default class Room {
   #player: AudioPlayer;
   #preprocessor: Preprocessor;
   #speakers: Collection<Snowflake, Speaker> = new Collection();
-  allocatedClient?: Client;
+  client: Client;
 
   guildSettings?: GuildSettings;
 
@@ -80,12 +79,11 @@ export default class Room {
     this.guild = voiceChannel.guild;
     this.guildId = voiceChannel.guildId;
 
-    const client = (this.allocatedClient = clientManager.allocateClient(
-      this.guildId
-    ));
+    const client = clientManager.allocateClient(this.guildId);
     if (!client || !client.user?.id) {
       throw new Error('Could not find any usable client.');
     }
+    this.client = client;
     const guild = ClientManager.getAltGuild(this.guild, client);
 
     const groups = getGroups();
@@ -122,28 +120,6 @@ export default class Room {
 
     this.#loadGuildSettingsPromise = this.loadGuildSettings();
 
-    voiceChannel.client.on('voiceStateUpdate', async (oldState, newState) => {
-      if (
-        oldState.guild.id === voiceChannel.guildId &&
-        oldState.channelId === voiceChannel.id &&
-        newState.channelId === null && //disconnect
-        client.user?.id &&
-        voiceChannel.members.has(client.user?.id) &&
-        voiceChannel.members.size === 1
-      ) {
-        //no member now. leaving the channel.
-        await textChannel.send({
-          embeds: [
-            new EndMessageEmbed(
-              this,
-              'ボイスチャンネルに誰もいなくなったため、'
-            ),
-          ],
-        });
-        this.destroy();
-      }
-    });
-
     this.#messageCollector = textChannel.createMessageCollector({
       filter: (message) =>
         message.cleanContent !== '' &&
@@ -164,15 +140,6 @@ export default class Room {
       );
       this.#synthesisQueue.push(speaker.synth.bind(speaker, preprocessed));
       this.#synth();
-    });
-
-    process.on('SIGINT', () => {
-      if (
-        this.#connection &&
-        this.#connection.state.status !== VoiceConnectionStatus.Destroyed
-      )
-        this.#connection.destroy();
-      process.exit(0);
     });
   }
 
@@ -269,15 +236,12 @@ export default class Room {
    * disconnects from voice channel and stop collecting messages.
    */
   destroy() {
-    if (
-      this.#connection &&
-      this.#connection.state.status !== VoiceConnectionStatus.Destroyed
-    ) {
+    this.#messageCollector.removeAllListeners();
+    this.#messageCollector.stop();
+    this.#player.removeAllListeners();
+    if (this.#connection.state.status !== VoiceConnectionStatus.Destroyed) {
       this.#connection.destroy();
     }
-    this.#messageCollector.stop();
-    if (this.allocatedClient) {
-      clientManager.freeClient(this.guildId, this.allocatedClient);
-    }
+    clientManager.freeClient(this.guildId, this.client);
   }
 }

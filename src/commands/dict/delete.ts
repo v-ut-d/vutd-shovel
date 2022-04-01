@@ -49,10 +49,7 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
           )
         );
 
-      const roomCollection = rooms.get(interaction.guildId);
-      if (roomCollection) {
-        await roomCollection.each((room) => room.reloadEmojiDict());
-      }
+      await rooms.reloadEmojiDict(interaction.guildId);
 
       const toWord = emoji.pronounciation;
       await interaction.reply({
@@ -75,10 +72,8 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
           )
         );
 
-      const roomCollection = rooms.get(interaction.guildId);
-      if (roomCollection) {
-        await roomCollection.each((room) => room.reloadGuildDict());
-      }
+      await rooms.reloadGuildDict(interaction.guildId);
+
       const toWord = entry.replaceTo;
       await interaction.reply({
         embeds: [new DictMessageEmbed('delete', fromWord, toWord)],

@@ -1,5 +1,6 @@
 import type { Client, Guild, Interaction, Role } from 'discord.js';
 import commands from './commands';
+import rooms from './rooms';
 
 /**
  * handles client.on('interactionCreate') event.
@@ -22,6 +23,16 @@ export async function roleDelete(role: Role) {
     return;
   }
   commands.checkRole(role.guild).catch(console.error);
+}
+
+export const voiceStateUpdate = rooms.onVoiceStateUpdate;
+
+export function onExit() {
+  try {
+    rooms.destroyAll();
+  } catch (e) {
+    console.error(e);
+  }
 }
 
 /**
