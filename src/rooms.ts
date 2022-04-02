@@ -81,8 +81,8 @@ export class RoomManager {
     const room = this.cache.get(newState.guild.id)?.get(client.user.id);
     if (!room) return;
     if (
-      room.voiceChannel.client.user?.id &&
-      !room.voiceChannel.members.has(room.voiceChannel.client.user?.id)
+      room.client.user?.id &&
+      !room.voiceChannel.members.has(room.client.user?.id)
     ) {
       this.destroy(newState.guild.id);
       await room.textChannel.send({
@@ -92,8 +92,8 @@ export class RoomManager {
     if (
       oldState.channelId === room.voiceChannel.id &&
       newState.channelId === null && //disconnect
-      room.voiceChannel.client.user?.id &&
-      room.voiceChannel.members.has(room.voiceChannel.client.user?.id) &&
+      room.client.user?.id &&
+      room.voiceChannel.members.has(room.client.user?.id) &&
       room.voiceChannel.members.size === 1
     ) {
       this.destroy(newState.guild.id);
@@ -108,7 +108,9 @@ export class RoomManager {
     const room = this.cache.get(guildId)?.first();
     if (!room) throw new Error('現在読み上げ中ではありません。');
     room.destroy();
-    this.cache.delete(guildId);
+    if (room.client.user?.id) {
+      this.cache.get(guildId)?.delete(room.client.user?.id);
+    }
     return room;
   }
   public destroyAll() {
