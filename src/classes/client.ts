@@ -1,9 +1,10 @@
-import type { ClientOptions } from 'discord.js';
+import type { Awaitable, ClientEvents, ClientOptions } from 'discord.js';
 import { Client, Collection, Guild } from 'discord.js';
+import EventEmitter from 'events';
 
-export default class ClientManager {
-  public primaryClient?: Client;
-  public secondaryClients: Client[] = [];
+export default class ClientManager extends EventEmitter {
+  public primaryClient?: Client<true>;
+  public secondaryClients: Client<true>[] = [];
   #primaryToken;
   #secondaryTokens;
 
@@ -15,26 +16,21 @@ export default class ClientManager {
    */
   #freeClients: Collection<string, Client[]> = new Collection();
   constructor(primaryToken: string, secondaryTokens: string[]) {
+    super();
     this.#primaryToken = primaryToken;
     this.#secondaryTokens = secondaryTokens;
-  }
-  public loginPrimary(client: Client) {
-    this.primaryClient = client;
-    this.#AddClientToFreeClients(client);
-    client.login(this.#primaryToken);
-  }
-  #AddClientToFreeClients(client: Client) {
-    client.on('ready', async (client: Client<true>) => {
+
+    this.on('ready', async (_, client) => {
       (await client.guilds.fetch()).forEach((guild) => {
         const c = this.#getClientArray(guild.id);
         c.push(client);
       });
     });
-    client.on('guildCreate', (guild) => {
+    this.on('guildCreate', (client, guild) => {
       const c = this.#getClientArray(guild.id);
       c.push(client);
     });
-    client.on('guildDelete', (guild) => {
+    this.on('guildDelete', (client, guild) => {
       const c = this.#getClientArray(guild.id);
       this.#freeClients.set(
         guild.id,
@@ -42,15 +38,33 @@ export default class ClientManager {
       );
     });
   }
+  public async loginPrimary(client: Client<true>) {
+    this.primaryClient = await this.#login(client, this.#primaryToken);
+  }
   public async instantiateSecondary(options: ClientOptions) {
     this.secondaryClients = await Promise.all(
       this.#secondaryTokens.map(async (token) => {
         const client = new Client(options);
-        this.#AddClientToFreeClients(client);
-        client.login(token);
-        return client;
+        return this.#login(client, token);
       })
     );
+  }
+  async #login(client: Client, token: string) {
+    client.emit = this.#altEmit(client);
+    await client.login(token);
+    //When login resolve, webSocket is ready.
+    return client;
+  }
+  #altEmit(client: Client) {
+    const managerEmit = this.emit.bind(this);
+    const originalEmit = client.emit.bind(client);
+    return function emit<K extends keyof ClientEvents>(
+      eventName: K,
+      ...args: ClientEvents[K]
+    ) {
+      managerEmit(eventName, client, ...args);
+      return originalEmit(eventName, ...args);
+    };
   }
   #getClientArray(guildId: string) {
     let c = this.#freeClients.get(guildId);
@@ -87,5 +101,52 @@ export default class ClientManager {
     const d = Object.getOwnPropertyDescriptors(Guild.prototype);
     Object.defineProperties(n, d);
     return n;
+  }
+
+  public on<K extends keyof ClientEvents>(
+    event: K,
+    listener: (client: Client, ...args: ClientEvents[K]) => Awaitable<void>
+  ): this;
+  public on(
+    eventName: string | symbol,
+    listener: (client: Client, ...args: unknown[]) => void
+  ) {
+    return super.on(eventName, listener);
+  }
+
+  public once<K extends keyof ClientEvents>(
+    event: K,
+    listener: (client: Client, ...args: ClientEvents[K]) => Awaitable<void>
+  ): this;
+  public once(
+    eventName: string | symbol,
+    listener: (client: Client, ...args: unknown[]) => void
+  ) {
+    return super.once(eventName, listener);
+  }
+
+  public emit<K extends keyof ClientEvents>(
+    event: K,
+    client: Client,
+    ...args: ClientEvents[K]
+  ): boolean;
+  public emit(eventName: string | symbol, ...args: unknown[]) {
+    return super.emit(eventName, ...args);
+  }
+
+  public off<K extends keyof ClientEvents>(
+    event: K,
+    listener: (client: Client, ...args: ClientEvents[K]) => Awaitable<void>
+  ): this;
+  public off(
+    eventName: string | symbol,
+    listener: (client: Client, ...args: unknown[]) => void
+  ) {
+    return super.off(eventName, listener);
+  }
+
+  public removeAllListeners<K extends keyof ClientEvents>(event?: K): this;
+  public removeAllListeners(eventName?: string | symbol) {
+    return super.removeAllListeners(eventName);
   }
 }
