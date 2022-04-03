@@ -67,7 +67,7 @@ export class RoomManager {
     }
     if (
       oldState.channelId === room.voiceChannel.id &&
-      newState.channelId === null && //disconnect
+      newState.channelId !== room.voiceChannel.id && //disconnect or channel switch
       room.voiceChannel.client.user?.id &&
       room.voiceChannel.members.has(room.voiceChannel.client.user?.id) &&
       room.voiceChannel.members.size === 1
