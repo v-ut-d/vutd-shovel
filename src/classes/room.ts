@@ -5,7 +5,6 @@ import {
   AudioPlayerStatus,
   AudioResource,
   entersState,
-  getGroups,
   joinVoiceChannel,
   NoSubscriberBehavior,
   VoiceConnection,
@@ -86,20 +85,11 @@ export default class Room {
     this.client = client;
     const guild = ClientManager.getAltGuild(this.guild, client);
 
-    const groups = getGroups();
-    const userConnections = groups.get(client.user.id);
-    if (userConnections) {
-      groups.set('default', userConnections);
-    } else {
-      const newUserConnections = new Map();
-      groups.set(client.user.id, newUserConnections);
-      groups.set('default', newUserConnections);
-    }
-
     this.#connection = joinVoiceChannel({
       channelId: voiceChannel.id,
       guildId: voiceChannel.guildId,
       adapterCreator: guild.voiceAdapterCreator,
+      group: client.user.id,
       debug: true,
     });
 
