@@ -51,7 +51,7 @@
     "@discordjs/voice": "^0.9.0",
     "@prisma/client": "^3.13.0",
     "axios": "^0.27.2",
-    "discord.js": "^13.6.0",
+    "discord.js": "^13.7.0",
     "dotenv": "^16.0.0",
     "libsodium-wrappers": "^0.7.10",
     "node-openjtalk-binding": "git+https://github.com/v-ut-d/node-openjtalk-binding.git",
