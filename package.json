@@ -52,7 +52,7 @@
     "@prisma/client": "^3.14.0",
     "axios": "^0.27.2",
     "discord.js": "^13.7.0",
-    "dotenv": "^16.0.0",
+    "dotenv": "^16.0.1",
     "libsodium-wrappers": "^0.7.10",
     "node-openjtalk-binding": "git+https://github.com/v-ut-d/node-openjtalk-binding.git",
     "node-openjtalk-binding-discordjs": "^1.1.0"
