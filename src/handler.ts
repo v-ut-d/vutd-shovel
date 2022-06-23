@@ -26,10 +26,11 @@ export async function roleDelete(role: Role) {
 }
 
 export async function voiceStateUpdate(
+  client: Client<true>,
   oldState: VoiceState,
   newState: VoiceState
 ) {
-  await rooms.onVoiceStateUpdate(oldState, newState);
+  await rooms.onVoiceStateUpdate(client, oldState, newState);
 }
 
 export function onExit() {

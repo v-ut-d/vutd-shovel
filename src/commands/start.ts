@@ -38,6 +38,14 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
 
     const room = await rooms.create(voiceChannel, textChannel);
 
+    if (!room.client.user?.id) {
+      room.destroy();
+      throw new Error(
+        'ボットをボイスチャンネルに割り当てることに失敗しました。' +
+          'なお、このエラーは通常発生しません。開発者に連絡してください。'
+      );
+    }
+
     const surpressed =
       voiceChannel.type === 'GUILD_STAGE_VOICE' &&
       me.voice.suppress &&

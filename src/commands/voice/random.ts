@@ -25,6 +25,12 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
       interaction.user
     );
     speaker.setRandomOptions();
+    await rooms.setSpeakerOption(
+      interaction.guildId,
+      interaction.user,
+      speaker.options
+    );
+
     await prisma.member.update({
       where: {
         guildId_userId: {
@@ -34,6 +40,7 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
       },
       data: speaker.options,
     });
+
     await interaction.reply({
       embeds: [new VoiceMessageEmbed('set', speaker.options)],
     });
