@@ -7,10 +7,19 @@ RUN apt-get update -y&&apt-get install -y openssl\
 FROM base AS builder
 
 WORKDIR /app
-COPY ./package*.json ./tsconfig.json ./prisma/schema.prisma ./
+
+RUN apt-get update -y&&apt-get install -y curl \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY ./package*.json ./
 
 RUN npm ci --ignore-scripts
 
+COPY ./script ./script
+RUN npm run compile-dict
+
+COPY ./tsconfig.json ./prisma/schema.prisma ./
 COPY ./src ./src
 RUN npm run build
 
@@ -19,20 +28,22 @@ FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV production
 
-COPY --from=builder /app/dist ./dist
+RUN apt-get update -y&&apt-get install -y python3 \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY ./prisma ./prisma
-COPY ./script ./script
 COPY ./package*.json ./
 
 RUN sed '/prepare/d' -i package.json
-
-RUN apt-get update -y&&apt-get install -y python3 curl g++ make \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
 RUN npm ci
-RUN apt-get remove -y python3 curl g++ make \
+
+RUN apt-get remove -y python3 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/dictionary ./dictionary
 
 CMD ["npm", "start"]
