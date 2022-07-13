@@ -47,7 +47,7 @@
   "homepage": "https://github.com/v-ut-d/vutd-shovel#readme",
   "dependencies": {
     "@cm-ayf/readenv": "^1.1.0",
-    "@discordjs/opus": "^0.7.0",
+    "@discordjs/opus": "^0.8.0",
     "@discordjs/voice": "^0.9.0",
     "@prisma/client": "^3.14.0",
     "axios": "^0.27.2",
