@@ -24,7 +24,7 @@ ARG TARGETARCH
 
 COPY ./prisma ./prisma
 
-RUN ARCH=$(echo $TARGETARCH|sed s/arm64/x64/)
+RUN ARCH=$(echo $TARGETARCH|sed s/amd64/x64/)
 RUN npm ci --target_arch=$ARCH
 
 
