@@ -1,6 +1,4 @@
-import type { GuildSettings } from '@prisma/client';
 import type { ApplicationCommandData, CommandInteraction } from 'discord.js';
-import type { PermissionSetterFunction } from '..';
 import * as export_ from './export';
 import * as import_ from './import';
 import * as keys from './keys';
@@ -14,23 +12,6 @@ export const data: ApplicationCommandData = {
     'サーバー絵文字の読み上げ方をまとめて操作するためのコマンドです。',
   defaultPermission: false,
   options: [export_.data, import_.data, keys.data],
-};
-
-/**
- * `/emoji-bulk` command permission data.
- */
-export const permissions: PermissionSetterFunction = (
-  guildSettings: GuildSettings
-) => {
-  return guildSettings.moderatorRole
-    ? [
-        {
-          type: 'ROLE',
-          id: guildSettings.moderatorRole,
-          permission: true,
-        },
-      ]
-    : [];
 };
 
 /**

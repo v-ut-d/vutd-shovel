@@ -23,7 +23,6 @@ const pillow =
 
 const defaultGuildSettings = {
   guildId: '', //unused
-  dictionaryWriteRole: '', //unused
   readSpeakersName: false, //unused
   readMultiLine: true,
   readEmojis: true,
