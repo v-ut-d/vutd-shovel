@@ -26,24 +26,9 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
       },
       create: {
         guildId: interaction.guildId,
-        dictionaryWriteRole: interaction.guild.roles.everyone.id,
       },
       update: {},
     });
-
-    const moderatorRoleName = setting.moderatorRole
-      ? `${
-          (await interaction.guild.roles.fetch(setting.moderatorRole)) ??
-          'Not Found'
-        }`
-      : 'Not set';
-
-    const dictRoleName = setting.dictionaryWriteRole
-      ? `${
-          (await interaction.guild.roles.fetch(setting.dictionaryWriteRole)) ??
-          'Not Found'
-        }`
-      : '@everyone';
 
     const numberOfEmojis = await prisma.emoji.count({
       where: {
@@ -60,8 +45,6 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
       embeds: [
         new SettingMessageEmbed('get', {
           setting: setting,
-          moderatorRoleName,
-          dictRoleName,
           numberOfEmojis,
           numberOfDictEntries,
         }),

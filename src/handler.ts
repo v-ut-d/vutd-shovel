@@ -1,4 +1,4 @@
-import type { Client, Guild, Interaction, Role, VoiceState } from 'discord.js';
+import type { Client, Guild, Interaction, VoiceState } from 'discord.js';
 import commands from './commands';
 import rooms from './rooms';
 
@@ -16,13 +16,6 @@ export async function interaction(interaction: Interaction) {
 
 export async function guild(guild: Guild) {
   commands.addGuild(guild).catch(console.error);
-}
-
-export async function roleDelete(role: Role) {
-  if (role.tags?.botId && role.tags.botId === role.client.user?.id) {
-    return;
-  }
-  commands.checkRole(role.guild).catch(console.error);
 }
 
 export async function voiceStateUpdate(
