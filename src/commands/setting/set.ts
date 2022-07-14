@@ -39,17 +39,6 @@ export const data: ApplicationCommandSubCommandData = {
       minValue: 0,
       maxValue: 10000,
     },
-    {
-      name: 'moderator_role',
-      type: 'ROLE',
-      description:
-        '/dict-bulk、/emoji-bulk、/settingを使えるユーザーのロールを指定します。',
-    },
-    {
-      name: 'dictionary_write_role',
-      type: 'ROLE',
-      description: '/dictを使えるユーザーのロールを指定します。',
-    },
   ],
 };
 
@@ -60,10 +49,6 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
   try {
     const setting = {
       guildId: interaction.guildId,
-      moderatorRole:
-        interaction.options.getRole('moderator_role')?.id ?? undefined,
-      dictionaryWriteRole:
-        interaction.options.getRole('dictionary_write_role')?.id ?? undefined,
       readSpeakersName:
         interaction.options.getBoolean('read_speakers_name') ?? undefined,
       readMultiLine:
