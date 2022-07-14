@@ -1,6 +1,4 @@
-import type { GuildSettings } from '@prisma/client';
 import type { ApplicationCommandData, CommandInteraction } from 'discord.js';
-import type { PermissionSetterFunction } from '..';
 import * as export_ from './export';
 import * as import_ from './import';
 
@@ -12,23 +10,6 @@ export const data: ApplicationCommandData = {
   description: 'サーバー辞書をまとめて操作するためのコマンドです。',
   defaultPermission: false,
   options: [export_.data, import_.data],
-};
-
-/**
- * `/dict-bulk` command permission data.
- */
-export const permissions: PermissionSetterFunction = (
-  guildSettings: GuildSettings
-) => {
-  return guildSettings.moderatorRole
-    ? [
-        {
-          type: 'ROLE',
-          id: guildSettings.moderatorRole,
-          permission: true,
-        },
-      ]
-    : [];
 };
 
 /**

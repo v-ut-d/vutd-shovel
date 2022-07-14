@@ -171,7 +171,6 @@ export default class Room {
       },
       create: {
         guildId: this.guildId,
-        dictionaryWriteRole: this.guild.roles.everyone.id,
       },
       update: {},
     });
