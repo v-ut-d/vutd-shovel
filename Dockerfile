@@ -1,4 +1,4 @@
-# Please use `buildx` instead of normal `build` to build this Dockerfile.
+# Please use `docker buildx build` instead of normal `docker build` to build this Dockerfile.
 # e.g. `docker buildx build --platform=linux/arm64,linux/amd64 .`
 
 FROM --platform=$BUILDPLATFORM node:16-bullseye-slim AS builder
