@@ -66,9 +66,9 @@ PCのパフォーマンスの都合などによりDevContainerを使わない場
       3. `docker run --rm -d -p 5432:5432 -v postgres-tmp:/var/lib/postgresql/data -e POSTGRES_DB=vutd-shovel-dev -e POSTGRES_USER=vutd-shovel-devuser -e POSTGRES_PASSWORD=change_me postgres`を実行するとpostgresが動き始めます(危ないので外部からアクセスできる状態にしてはいけません)。
       4. データベースの接続文字列を次のように`.env`に追記します(ユーザー名、パスワード、データベース名を変えたらそれに応じて変更してください)。
 
-      ```text
-      DATABASE_URL="postgresql://vutd-shovel-devuser:change_me@localhost:5432/vutd-shovel-dev?schema=public"
-      ```
+            ```text
+            DATABASE_URL="postgresql://vutd-shovel-devuser:change_me@localhost:5432/vutd-shovel-dev?schema=public"
+            ```
 
     - dockerを使わない場合(dockerより軽く、細かい設定が可能だが面倒)
 
@@ -81,9 +81,9 @@ PCのパフォーマンスの都合などによりDevContainerを使わない場
           を作成します。
       3. データベースの接続文字列を次のように`.env`に追記します。
 
-      ```text
-      DATABASE_URL="postgresql://ユーザー名:パスワード@localhost:5432/データベース名?schema=public"
-      ```
+            ```text
+            DATABASE_URL="postgresql://ユーザー名:パスワード@localhost:5432/データベース名?schema=public"
+            ```
 
 6. ボットを準備していきます。まずは[Discord Developer Portal](https://discord.com/developers/applications)からテスト用のボットを作成します。
 7. `Bot`を開き、`Add Bot`を押します(確認画面が出たらそのまま進んで、Botを追加してください)。
