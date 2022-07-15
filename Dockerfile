@@ -1,3 +1,6 @@
+# Please use `buildx` instead of normal `build` to build this Dockerfile.
+# e.g. `docker buildx build --platform=linux/arm64,linux/amd64 .`
+
 FROM --platform=$BUILDPLATFORM node:16-bullseye-slim AS builder
 
 WORKDIR /app
