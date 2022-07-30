@@ -21,7 +21,7 @@ import type {
 } from 'discord.js';
 import { Preprocessor } from '.';
 import { prisma } from '../database';
-import { speakerManager } from '../speakers';
+import { speakers } from '../speakers';
 /**
  * represents one reading session.
  * exists at most 1 per {@link Guild}.
@@ -151,10 +151,7 @@ export default class Room {
     const synth = this.#synthesisQueue.shift();
     if (synth) {
       this.#synthesizing += 1;
-      const stream = await speakerManager.synthesize(
-        synth.member,
-        synth.content
-      );
+      const stream = await speakers.synthesize(synth.member, synth.content);
       stream.once('data', () => {
         this.#synthesizing -= 1;
         this.#synth().catch((e) => console.error(e));

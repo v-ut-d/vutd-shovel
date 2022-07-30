@@ -3,12 +3,12 @@ import { prisma } from '../database';
 import type { BaseSpeaker, OptionsObject, SpeakerClass } from './base';
 import OpenJTalk from './openjtalk';
 
-const speakers = {
+const speakerDict = {
   openjtalk: OpenJTalk,
 };
 
 // This will detect type mistakes
-const speakersArray: [string, SpeakerClass][] = Object.entries(speakers);
+const speakersArray: [string, SpeakerClass][] = Object.entries(speakerDict);
 
 export class SpeakerManager {
   private cache: Collection<string, Collection<string, BaseSpeaker>> =
@@ -36,7 +36,7 @@ export class SpeakerManager {
     });
 
     const speakerClass =
-      speakers[options?.synthesisEngine as keyof typeof speakers];
+      speakerDict[options?.synthesisEngine as keyof typeof speakerDict];
     if (speakerClass) {
       let speaker: InstanceType<typeof speakerClass>;
       if (
@@ -85,12 +85,12 @@ export class SpeakerManager {
     return speaker.display();
   }
 
-  async set<T extends keyof typeof speakers>(
+  async set<T extends keyof typeof speakerDict>(
     member: GuildMember,
     key: T,
-    options: Partial<ReturnType<InstanceType<typeof speakers[T]>['toJSON']>>
+    options: Partial<ReturnType<InstanceType<typeof speakerDict[T]>['toJSON']>>
   ) {
-    const speakerClass = speakers[key];
+    const speakerClass = speakerDict[key];
     if (!speakerClass) throw new Error('Unknown key');
     const speaker = new speakerClass(member, options);
     this.setCache(member, speaker);
@@ -106,4 +106,4 @@ export class SpeakerManager {
   }
 }
 
-export const speakerManager = new SpeakerManager();
+export const speakers = new SpeakerManager();

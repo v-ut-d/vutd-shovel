@@ -4,7 +4,7 @@ import {
   ApplicationCommandOptionType,
 } from 'discord.js';
 import { ErrorMessageEmbed, VoiceMessageEmbed } from '../../components';
-import { speakerManager } from '../../speakers';
+import { speakers } from '../../speakers';
 
 /**
  * `/voice random` command data.
@@ -22,8 +22,8 @@ export async function handle(
   interaction: ChatInputCommandInteraction<'cached'>
 ) {
   try {
-    await speakerManager.random(interaction.member);
-    const fields = await speakerManager.display(interaction.member);
+    await speakers.random(interaction.member);
+    const fields = await speakers.display(interaction.member);
     await interaction.reply({
       embeds: [new VoiceMessageEmbed('set', fields)],
     });

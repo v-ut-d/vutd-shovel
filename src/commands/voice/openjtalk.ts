@@ -5,7 +5,7 @@ import {
 } from 'discord.js';
 import path from 'path';
 import { ErrorMessageEmbed, VoiceMessageEmbed } from '../../components';
-import { speakerManager } from '../../speakers';
+import { speakers } from '../../speakers';
 import OpenJTalk from '../../speakers/openjtalk';
 
 /**
@@ -57,13 +57,13 @@ export async function handle(
   interaction: ChatInputCommandInteraction<'cached'>
 ) {
   try {
-    await speakerManager.set(interaction.member, 'openjtalk', {
+    await speakers.set(interaction.member, 'openjtalk', {
       htsvoice: interaction.options.getString('htsvoice') ?? undefined,
       tone: interaction.options.getNumber('tone') ?? undefined,
       speed: interaction.options.getNumber('speed') ?? undefined,
       f0: interaction.options.getNumber('f0') ?? undefined,
     });
-    const fields = await speakerManager.display(interaction.member);
+    const fields = await speakers.display(interaction.member);
     await interaction.reply({
       embeds: [new VoiceMessageEmbed('set', fields)],
     });

@@ -4,7 +4,7 @@ import {
   ApplicationCommandOptionType,
 } from 'discord.js';
 import { ErrorMessageEmbed, VoiceMessageEmbed } from '../../components';
-import { speakerManager } from '../../speakers';
+import { speakers } from '../../speakers';
 
 /**
  * `/voice get` command data.
@@ -22,7 +22,7 @@ export async function handle(
   interaction: ChatInputCommandInteraction<'cached'>
 ) {
   try {
-    const fields = await speakerManager.display(interaction.member);
+    const fields = await speakers.display(interaction.member);
     await interaction.reply({
       embeds: [new VoiceMessageEmbed('get', fields)],
     });
