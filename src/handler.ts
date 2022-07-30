@@ -8,7 +8,7 @@ import rooms from './rooms';
 export async function interaction(interaction: Interaction) {
   if (!interaction.inCachedGuild()) return;
   try {
-    if (interaction.isCommand()) await commands.handle(interaction);
+    if (interaction.isChatInputCommand()) await commands.handle(interaction);
   } catch (e) {
     console.error(e);
   }

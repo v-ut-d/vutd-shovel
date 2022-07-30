@@ -11,8 +11,8 @@ datasource db {
 }
 
 model Member {
-  guildId  String @db.VarChar(18)
-  userId   String @db.VarChar(18)
+  guildId  String @db.VarChar(19)
+  userId   String @db.VarChar(19)
   tone     Float
   speed    Float
   f0       Float
@@ -22,8 +22,8 @@ model Member {
 }
 
 model Emoji {
-  guildId        String @db.VarChar(18)
-  emojiId        String @db.VarChar(18)
+  guildId        String @db.VarChar(19)
+  emojiId        String @db.VarChar(19)
   pronounciation String
 
   @@id([guildId, emojiId])

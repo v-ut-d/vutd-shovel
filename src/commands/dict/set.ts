@@ -1,6 +1,7 @@
-import type {
+import {
   ApplicationCommandSubCommandData,
-  CommandInteraction,
+  ChatInputCommandInteraction,
+  ApplicationCommandOptionType,
 } from 'discord.js';
 import { DictMessageEmbed, ErrorMessageEmbed } from '../../components';
 import { prisma } from '../../database';
@@ -11,18 +12,18 @@ import rooms from '../../rooms';
  */
 export const data: ApplicationCommandSubCommandData = {
   name: 'set',
-  type: 'SUB_COMMAND',
+  type: ApplicationCommandOptionType.Subcommand,
   description: '単語を登録または更新します。',
   options: [
     {
       name: 'fromword',
-      type: 'STRING',
+      type: ApplicationCommandOptionType.String,
       description: '置換元の単語です。絵文字は一文字で入力してください。',
       required: true,
     },
     {
       name: 'toword',
-      type: 'STRING',
+      type: ApplicationCommandOptionType.String,
       description:
         '置換先の単語です。辞書に登録された別の単語を入れると意図しない挙動となる可能性があります。',
       required: true,
@@ -33,11 +34,13 @@ export const data: ApplicationCommandSubCommandData = {
 /**
  * handles `/dict get` command.
  */
-export async function handle(interaction: CommandInteraction<'cached'>) {
+export async function handle(
+  interaction: ChatInputCommandInteraction<'cached'>
+) {
   try {
     const fromWord = interaction.options.getString('fromword', true);
     const toWord = interaction.options.getString('toword', true);
-    const emojiInfo = fromWord.match(/^<:(.+?):(?<emojiId>\d{18})>$/);
+    const emojiInfo = fromWord.match(/^<:(.+?):(?<emojiId>\d{16,19})>$/);
     // emojiInfo.groups always exist
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     if (emojiInfo?.groups!.emojiId) {

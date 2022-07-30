@@ -1,4 +1,9 @@
-import type { ApplicationCommandData, CommandInteraction } from 'discord.js';
+import {
+  ApplicationCommandData,
+  ChatInputCommandInteraction,
+  ApplicationCommandOptionType,
+  ChannelType,
+} from 'discord.js';
 import rooms from '../rooms';
 import { ErrorMessageEmbed, StartMessageEmbed } from '../components';
 
@@ -11,10 +16,10 @@ export const data: ApplicationCommandData = {
   options: [
     {
       name: 'vc',
-      type: 'CHANNEL',
+      type: ApplicationCommandOptionType.Channel,
       description:
         'ボイスチャンネル。あなたがどこのチャンネルにも入っていない場合、指定必須です。',
-      channelTypes: ['GUILD_STAGE_VOICE', 'GUILD_VOICE'],
+      channelTypes: [ChannelType.GuildStageVoice, ChannelType.GuildVoice],
     },
   ],
 };
@@ -22,25 +27,27 @@ export const data: ApplicationCommandData = {
 /**
  * handles `/start` command.
  */
-export async function handle(interaction: CommandInteraction<'cached'>) {
+export async function handle(
+  interaction: ChatInputCommandInteraction<'cached'>
+) {
   try {
     const voiceChannel =
       interaction.options.getChannel('vc') ?? interaction.member.voice.channel;
-    if (!voiceChannel?.isVoice())
+    if (!voiceChannel?.isVoiceBased())
       throw new Error('ボイスチャンネルを指定してください。');
 
     const textChannel = interaction.channel;
     if (!textChannel)
       throw new Error('テキストチャンネルを取得できませんでした。');
 
-    const me = interaction.guild.me;
+    const me = interaction.guild.members.me;
     if (!me) throw new Error('データを取得できませんでした。');
 
     const room = await rooms.create(voiceChannel, textChannel);
 
     const surpressed =
-      voiceChannel.type === 'GUILD_STAGE_VOICE' &&
-      me.voice.suppress &&
+      voiceChannel.type === ChannelType.GuildStageVoice &&
+      me.voice.suppress === false &&
       (await me.voice.setSuppressed(false).then(
         () => false,
         () => true

@@ -1,4 +1,8 @@
-import type { ApplicationCommandData, CommandInteraction } from 'discord.js';
+import {
+  ApplicationCommandData,
+  ChatInputCommandInteraction,
+  PermissionFlagsBits,
+} from 'discord.js';
 import * as get from './get';
 import * as set from './set';
 import * as del from './delete';
@@ -9,14 +13,16 @@ import * as del from './delete';
 export const data: ApplicationCommandData = {
   name: 'dict',
   description: '辞書に関するコマンド群です。',
-  defaultPermission: false,
+  defaultMemberPermissions: PermissionFlagsBits.Administrator,
   options: [get.data, set.data, del.data],
 };
 
 /**
  * handles `/dict` subcommands.
  */
-export async function handle(interaction: CommandInteraction<'cached'>) {
+export async function handle(
+  interaction: ChatInputCommandInteraction<'cached'>
+) {
   const subcommand = interaction.options.getSubcommand(true);
   switch (subcommand) {
     case 'get':

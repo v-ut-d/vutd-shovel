@@ -1,4 +1,7 @@
-import type { ApplicationCommandData, CommandInteraction } from 'discord.js';
+import type {
+  ApplicationCommandData,
+  ChatInputCommandInteraction,
+} from 'discord.js';
 import { ErrorMessageEmbed, HelpMessageEmbed } from '../components';
 
 /**
@@ -12,7 +15,9 @@ export const data: ApplicationCommandData = {
 /**
  * handles `/help` command.
  */
-export async function handle(interaction: CommandInteraction<'cached'>) {
+export async function handle(
+  interaction: ChatInputCommandInteraction<'cached'>
+) {
   try {
     await interaction.reply({
       embeds: [new HelpMessageEmbed()],

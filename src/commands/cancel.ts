@@ -1,4 +1,7 @@
-import type { ApplicationCommandData, CommandInteraction } from 'discord.js';
+import type {
+  ApplicationCommandData,
+  ChatInputCommandInteraction,
+} from 'discord.js';
 import rooms from '../rooms';
 
 /**
@@ -12,7 +15,9 @@ export const data: ApplicationCommandData = {
 /**
  * handles `/cancel` command.
  */
-export async function handle(interaction: CommandInteraction<'cached'>) {
+export async function handle(
+  interaction: ChatInputCommandInteraction<'cached'>
+) {
   try {
     rooms.cancel(interaction.guildId);
     await interaction.reply({

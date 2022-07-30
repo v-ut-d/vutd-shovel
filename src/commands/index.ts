@@ -2,7 +2,7 @@ import type {
   ApplicationCommandData,
   ApplicationCommandManager,
   Client,
-  CommandInteraction,
+  ChatInputCommandInteraction,
   Guild,
   GuildApplicationCommandManager,
 } from 'discord.js';
@@ -20,7 +20,7 @@ import * as help from './help';
 
 interface CommandDefinition {
   data: ApplicationCommandData;
-  handle(interaction: CommandInteraction<'cached'>): Promise<void>;
+  handle(interaction: ChatInputCommandInteraction<'cached'>): Promise<void>;
 }
 
 class CommandManager<Production extends boolean> {
@@ -47,7 +47,7 @@ class CommandManager<Production extends boolean> {
     }
   }
 
-  async handle(interaction: CommandInteraction<'cached'>) {
+  async handle(interaction: ChatInputCommandInteraction<'cached'>) {
     return this.#commandDefinitions
       .get(interaction.commandName)
       ?.handle(interaction);

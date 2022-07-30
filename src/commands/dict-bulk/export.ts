@@ -1,6 +1,7 @@
-import type {
+import {
   ApplicationCommandSubCommandData,
-  CommandInteraction,
+  ChatInputCommandInteraction,
+  ApplicationCommandOptionType,
 } from 'discord.js';
 import { DictBulkMessageEmbed, ErrorMessageEmbed } from '../../components';
 import { prisma } from '../../database';
@@ -10,14 +11,16 @@ import { prisma } from '../../database';
  */
 export const data: ApplicationCommandSubCommandData = {
   name: 'export',
-  type: 'SUB_COMMAND',
+  type: ApplicationCommandOptionType.Subcommand,
   description: 'サーバー辞書をまとめて出力します。',
 };
 
 /**
  * handles `/dict-bulk export` command.
  */
-export async function handle(interaction: CommandInteraction<'cached'>) {
+export async function handle(
+  interaction: ChatInputCommandInteraction<'cached'>
+) {
   try {
     const dictEntries = await prisma.guildDictionary.findMany({
       where: {

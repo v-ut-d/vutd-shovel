@@ -1,4 +1,7 @@
-import type { ApplicationCommandData, CommandInteraction } from 'discord.js';
+import type {
+  ApplicationCommandData,
+  ChatInputCommandInteraction,
+} from 'discord.js';
 import rooms from '../rooms';
 import { EndMessageEmbed, ErrorMessageEmbed } from '../components';
 
@@ -13,7 +16,9 @@ export const data: ApplicationCommandData = {
 /**
  * handles `/end` command.
  */
-export async function handle(interaction: CommandInteraction<'cached'>) {
+export async function handle(
+  interaction: ChatInputCommandInteraction<'cached'>
+) {
   try {
     const room = rooms.destroy(interaction.guildId);
     await interaction.reply({
