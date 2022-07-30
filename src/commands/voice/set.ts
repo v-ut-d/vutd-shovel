@@ -1,6 +1,7 @@
-import type {
+import {
+  ApplicationCommandOptionType,
   ApplicationCommandSubCommandData,
-  CommandInteraction,
+  ChatInputCommandInteraction,
 } from 'discord.js';
 import path from 'path';
 import { Speaker } from '../../classes';
@@ -13,12 +14,12 @@ import rooms from '../../rooms';
  */
 export const data: ApplicationCommandSubCommandData = {
   name: 'set',
-  type: 'SUB_COMMAND',
+  type: ApplicationCommandOptionType.Subcommand,
   description: '読み上げる声の設定を指定して変更します。',
   options: [
     {
       name: 'htsvoice',
-      type: 'STRING',
+      type: ApplicationCommandOptionType.String,
       description: '声質を指定します。',
       choices: Speaker.htsvoices.map((value) => ({
         name: path.basename(value).replace(/\..+?$/, ''),
@@ -27,21 +28,21 @@ export const data: ApplicationCommandSubCommandData = {
     },
     {
       name: 'tone',
-      type: 'NUMBER',
+      type: ApplicationCommandOptionType.Number,
       description: '声の高さを指定します。',
       minValue: 0,
       maxValue: 6,
     },
     {
       name: 'speed',
-      type: 'NUMBER',
+      type: ApplicationCommandOptionType.Number,
       description: '声の速さを指定します。',
       minValue: 0.5,
       maxValue: 2,
     },
     {
       name: 'f0',
-      type: 'NUMBER',
+      type: ApplicationCommandOptionType.Number,
       description: '声の抑揚を指定します。',
       minValue: 0.25,
       maxValue: 4,
@@ -52,7 +53,9 @@ export const data: ApplicationCommandSubCommandData = {
 /**
  * handles `/voice set` command.
  */
-export async function handle(interaction: CommandInteraction<'cached'>) {
+export async function handle(
+  interaction: ChatInputCommandInteraction<'cached'>
+) {
   try {
     const speaker = await rooms.getOrCreateSpeaker(
       interaction.guildId,

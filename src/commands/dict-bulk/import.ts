@@ -1,7 +1,8 @@
 import axios from 'axios';
-import type {
+import {
   ApplicationCommandSubCommandData,
-  CommandInteraction,
+  ChatInputCommandInteraction,
+  ApplicationCommandOptionType,
 } from 'discord.js';
 import { DictBulkMessageEmbed, ErrorMessageEmbed } from '../../components';
 import { prisma } from '../../database';
@@ -11,12 +12,12 @@ import { prisma } from '../../database';
  */
 export const data: ApplicationCommandSubCommandData = {
   name: 'import',
-  type: 'SUB_COMMAND',
+  type: ApplicationCommandOptionType.Subcommand,
   description: '辞書にまとめて単語を登録します。',
   options: [
     {
       name: 'replace',
-      type: 'BOOLEAN',
+      type: ApplicationCommandOptionType.Boolean,
       required: false,
       description:
         '単語を追加する際、元の辞書の内容をすべて削除するかどうかを指定します。デフォルトでFalse(単語を削除しない)です。',
@@ -27,7 +28,9 @@ export const data: ApplicationCommandSubCommandData = {
 /**
  * handles `/dict-bulk import` command.
  */
-export async function handle(interaction: CommandInteraction<'cached'>) {
+export async function handle(
+  interaction: ChatInputCommandInteraction<'cached'>
+) {
   try {
     const replaceEntries = interaction.options.getBoolean('replace') ?? false;
 

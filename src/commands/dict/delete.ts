@@ -1,6 +1,7 @@
-import type {
+import {
   ApplicationCommandSubCommandData,
-  CommandInteraction,
+  ChatInputCommandInteraction,
+  ApplicationCommandOptionType,
 } from 'discord.js';
 import { DictMessageEmbed, ErrorMessageEmbed } from '../../components';
 import { prisma } from '../../database';
@@ -11,12 +12,12 @@ import rooms from '../../rooms';
  */
 export const data: ApplicationCommandSubCommandData = {
   name: 'delete',
-  type: 'SUB_COMMAND',
+  type: ApplicationCommandOptionType.Subcommand,
   description: '単語を削除します。',
   options: [
     {
       name: 'word',
-      type: 'STRING',
+      type: ApplicationCommandOptionType.String,
       description:
         '削除する単語です。ただし、絵文字の場合は一文字で入力してください。',
       required: true,
@@ -27,7 +28,9 @@ export const data: ApplicationCommandSubCommandData = {
 /**
  * handles `/dict get` command.
  */
-export async function handle(interaction: CommandInteraction<'cached'>) {
+export async function handle(
+  interaction: ChatInputCommandInteraction<'cached'>
+) {
   try {
     const fromWord = interaction.options.getString('word', true);
     const emojiInfo = fromWord.match(/^<:(.+?):(?<emojiId>\d{18})>$/);

@@ -1,4 +1,8 @@
-import type { ApplicationCommandData, CommandInteraction } from 'discord.js';
+import {
+  ApplicationCommandData,
+  ChatInputCommandInteraction,
+  PermissionFlagsBits,
+} from 'discord.js';
 
 import * as get from './get';
 import * as set from './set';
@@ -9,14 +13,16 @@ import * as set from './set';
 export const data: ApplicationCommandData = {
   name: 'setting',
   description: 'サーバー全体の設定を変更・取得するコマンドです。',
-  defaultPermission: false,
+  defaultMemberPermissions: PermissionFlagsBits.Administrator,
   options: [get.data, set.data],
 };
 
 /**
  * handles `/setting` subcommands.
  */
-export async function handle(interaction: CommandInteraction<'cached'>) {
+export async function handle(
+  interaction: ChatInputCommandInteraction<'cached'>
+) {
   const subcommand = interaction.options.getSubcommand(true);
   switch (subcommand) {
     case 'get':

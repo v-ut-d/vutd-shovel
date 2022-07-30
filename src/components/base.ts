@@ -1,14 +1,14 @@
-import { MessageEmbed, MessageEmbedOptions } from 'discord.js';
+import { APIEmbed, EmbedBuilder } from 'discord.js';
 
 /**
  * @abstract
  * base abstract class for any embed sent by this bot.
  * give `super` additional {@link MessageEmbedOptions}.
  */
-export default abstract class BaseMessageEmbed extends MessageEmbed {
-  constructor(data: MessageEmbedOptions) {
+export default abstract class BaseMessageEmbed extends EmbedBuilder {
+  constructor(data: APIEmbed) {
     super({
-      color: '#798fda',
+      color: 0x798fda,
       ...data,
     });
   }
