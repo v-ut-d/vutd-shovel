@@ -2,7 +2,6 @@ import {
   Collection,
   GuildTextBasedChannel,
   StageChannel,
-  User,
   VoiceChannel,
   VoiceState,
   type Snowflake,
@@ -47,11 +46,6 @@ export class RoomManager {
     const room = this.cache.get(guildId);
     if (!room) return;
     await room.loadGuildSettings();
-  }
-  public async getOrCreateSpeaker(guildId: Snowflake, user: User) {
-    const room = this.cache.get(guildId);
-    if (!room) throw new Error('現在読み上げ中ではありません。');
-    return await room.getOrCreateSpeaker(user);
   }
   public async onVoiceStateUpdate(oldState: VoiceState, newState: VoiceState) {
     const room = this.cache.get(newState.guild.id);

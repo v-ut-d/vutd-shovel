@@ -1,12 +1,11 @@
-import path from 'path';
-import type { SpeakerOptions } from '../classes';
+import type { APIEmbedField } from 'discord.js';
 import BaseMessageEmbed from './base';
 
 /**
  * embed sent when user gets or sets voice setting.
  */
 export default class VoiceMessageEmbed extends BaseMessageEmbed {
-  constructor(type: 'get' | 'set', options: SpeakerOptions) {
+  constructor(type: 'get' | 'set', fields: APIEmbedField[]) {
     let description: string;
     switch (type) {
       case 'get':
@@ -19,27 +18,7 @@ export default class VoiceMessageEmbed extends BaseMessageEmbed {
     super({
       title: '読み上げ設定',
       description,
-      fields: [
-        {
-          name: '声質',
-          value: path.basename(options.htsvoice).replace(/\..*?$/, ''),
-        },
-        {
-          name: '声の高さ',
-          value: options.tone.toFixed(2),
-          inline: true,
-        },
-        {
-          name: '声の速さ',
-          value: options.speed.toFixed(2),
-          inline: true,
-        },
-        {
-          name: '声の抑揚',
-          value: options.f0.toFixed(2),
-          inline: true,
-        },
-      ],
+      fields,
     });
   }
 }

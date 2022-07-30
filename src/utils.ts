@@ -14,4 +14,7 @@ export const env = readenv({
     default: false,
     parse: (s) => s === 'production',
   },
+  debug: {
+    default: true,
+  },
 });
