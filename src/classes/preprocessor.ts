@@ -20,7 +20,7 @@ const SPOILER_REPLACER = [/\|\|.*?\|\|/g, ' '] as const;
 
 const GUILD_EMOJI_REPLACER = (dict: Collection<string, string>) =>
   [
-    /<:(.+?):(\d{18})>/g,
+    /<:(.+?):(\d{16,19})>/g,
     (_: unknown, name: string, id: string) => dict.get(id) ?? `:${name}:`,
   ] as const;
 

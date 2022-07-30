@@ -40,7 +40,7 @@ export async function handle(
   try {
     const fromWord = interaction.options.getString('fromword', true);
     const toWord = interaction.options.getString('toword', true);
-    const emojiInfo = fromWord.match(/^<:(.+?):(?<emojiId>\d{18})>$/);
+    const emojiInfo = fromWord.match(/^<:(.+?):(?<emojiId>\d{16,19})>$/);
     // emojiInfo.groups always exist
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     if (emojiInfo?.groups!.emojiId) {

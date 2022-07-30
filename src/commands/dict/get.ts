@@ -32,7 +32,7 @@ export async function handle(
 ) {
   try {
     const fromWord = interaction.options.getString('word', true);
-    const emojiInfo = fromWord.match(/^<:(.+?):(?<emojiId>\d{18})>$/);
+    const emojiInfo = fromWord.match(/^<:(.+?):(?<emojiId>\d{16,19})>$/);
     if (emojiInfo?.groups?.emojiId) {
       //FromWord is Emoji
       const emoji = await prisma.emoji.findUnique({

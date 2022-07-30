@@ -61,7 +61,7 @@ export async function handle(
     const matches = [
       ...text.matchAll(
         // eslint-disable-next-line no-irregular-whitespace
-        /^<a?:.+?:(?<emojiId>\d{18})>, ?(?<pronounciation>[^\s　]+)$/gm
+        /^<a?:.+?:(?<emojiId>\d{16,19})>, ?(?<pronounciation>[^\s　]+)$/gm
       ),
     ]
       // 'as' assertion; regexp above guarantees this

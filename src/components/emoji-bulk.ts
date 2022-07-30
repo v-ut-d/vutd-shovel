@@ -16,7 +16,7 @@ export default class EmojiBulkMessageEmbed extends BaseMessageEmbed {
         description = `\
 サーバー絵文字辞書をインポートします。
 5分以内にテキストファイルを添付したメッセージを送付してください。
-テキストファイルの各行は\`<:alias:(id: 18 digits)>, 読み\`である必要があります。
+テキストファイルの各行は\`<:alias:(id: 16~19 digits)>, 読み\`である必要があります。
 複数のファイルを添付した場合、結合されたものが使用されます。`;
         break;
       case 'import-complete':
@@ -28,7 +28,7 @@ export default class EmojiBulkMessageEmbed extends BaseMessageEmbed {
       case 'keys':
         description = `\
 サーバー絵文字辞書に含まれていない絵文字の一覧を出力します。
-各行は\`<:alias:(id: 18 digits)>, \`となっています。
+各行は\`<:alias:(id: 16~19 digits)>, \`となっています。
 それぞれの行の末尾に読みを付け足して保存し、 \`/emoji-bulk import\` してください。`;
     }
     super({
