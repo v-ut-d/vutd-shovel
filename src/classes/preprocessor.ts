@@ -1,8 +1,8 @@
 import { Collection } from 'discord.js';
 import type { Room } from '.';
 import { prisma } from '../database';
-import alkana from '../data/alkana.json';
-import emoji from '../data/emoji.json';
+import alkana from '../data/alkana.json' assert { type: 'json' };
+import emoji from '../data/emoji.json' assert { type: 'json' };
 
 const TO_BE_ESCAPED = '\\*+.?{}()[]^$-|/';
 

@@ -21,7 +21,7 @@
   "scripts": {
     "build": "tsc",
     "check": "tsc --noEmit",
-    "dev": "ts-node src/index.ts",
+    "dev": "ts-node --esm src/index.ts",
     "dev:watch": "ts-node-dev src/index.ts",
     "prepare": "husky install",
     "lint-staged": "lint-staged",
@@ -58,5 +58,6 @@
   },
   "overrides": {
     "discord-api-types": ">=0.30.0"
-  }
+  },
+  "type": "module"
 }
