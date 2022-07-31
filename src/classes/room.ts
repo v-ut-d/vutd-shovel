@@ -1,6 +1,4 @@
 import {
-  createAudioResource,
-  StreamType,
   AudioPlayer,
   AudioPlayerStatus,
   AudioResource,
@@ -13,7 +11,6 @@ import {
 import type { GuildSettings } from '@prisma/client';
 import type {
   Guild,
-  GuildMember,
   GuildTextBasedChannel,
   MessageCollector,
   Snowflake,
@@ -40,8 +37,6 @@ export default class Room {
 
   #connection: VoiceConnection;
   #messageCollector: MessageCollector;
-  #synthesizing = 0;
-  #synthesisQueue: { member: GuildMember; content: string }[] = [];
   #playQueue: AudioResource[] = [];
   #player: AudioPlayer;
   #preprocessor: Preprocessor;
@@ -104,11 +99,13 @@ export default class Room {
       const preprocessed = this.#preprocessor.exec(
         prefix + message.cleanContent
       );
-      this.#synthesisQueue.push({
-        member: message.member,
-        content: preprocessed,
-      });
-      this.#synth().catch((e) => console.error(e));
+      const resource = await speakers.synthesize(
+        message.member,
+        preprocessed,
+        (e) => console.error(e)
+      );
+      this.#playQueue.push(resource);
+      this.#play();
     });
   }
 
@@ -146,24 +143,6 @@ export default class Room {
     this.guildSettings = guildSettings;
   }
 
-  async #synth() {
-    if (this.#synthesizing > 0) return;
-    const synth = this.#synthesisQueue.shift();
-    if (synth) {
-      this.#synthesizing += 1;
-      const stream = await speakers.synthesize(synth.member, synth.content);
-      stream.once('data', () => {
-        this.#synthesizing -= 1;
-        this.#synth().catch((e) => console.error(e));
-      });
-      this.#playQueue.push(
-        createAudioResource(stream, {
-          inputType: StreamType.Raw,
-        })
-      );
-      this.#play();
-    }
-  }
   #play() {
     if (this.#player.state.status === AudioPlayerStatus.Idle) {
       const resource = this.#playQueue.shift();

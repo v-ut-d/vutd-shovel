@@ -1,14 +1,10 @@
 import type { APIEmbedField, GuildMember } from 'discord.js';
 import { readdirSync } from 'fs';
 import path from 'path';
-import {
-  OpenJTalkOptions,
-  silenceOnError,
-  synthesis,
-} from 'node-openjtalk-binding-discordjs';
+import { OpenJTalkOptions, synthesis } from 'node-openjtalk-binding-discordjs';
 
 import { BaseSpeaker, OptionsObject } from './base';
-import { env } from '../utils';
+import { StreamType } from '@discordjs/voice';
 
 const voiceDir = './voice';
 
@@ -66,15 +62,15 @@ export default class OpenJTalk extends BaseSpeaker {
     return result;
   }
 
-  synthesize(content: string) {
-    const stream = silenceOnError(
-      synthesis(content, {
-        dictionary: './dictionary',
-        ...this.#options,
-      }),
-      env.debug ? console.error : undefined
-    );
-    return stream;
+  async synthesize(content: string) {
+    const stream = synthesis(content, {
+      dictionary: './dictionary',
+      ...this.#options,
+    });
+    return {
+      data: stream,
+      streamType: StreamType.Raw,
+    };
   }
 
   display(): APIEmbedField[] {
