@@ -100,7 +100,7 @@ export default class Room {
       debug: true,
     });
 
-    this.#player.on<'stateChange'>('stateChange', (_, state) => {
+    this.#player.on('stateChange', (_, state) => {
       if (state.status === AudioPlayerStatus.Idle) this.#play();
     });
 
@@ -186,7 +186,6 @@ export default class Room {
       },
       create: {
         guildId: this.guildId,
-        dictionaryWriteRole: this.guild.roles.everyone.id,
       },
       update: {},
     });

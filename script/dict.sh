@@ -1,6 +1,6 @@
 #!/bin/sh
 
-rm -r dictionary>/dev/null
+rm -r dictionary 2> /dev/null
 mkdir -p dictionary/tmp
 cd dictionary/tmp
 

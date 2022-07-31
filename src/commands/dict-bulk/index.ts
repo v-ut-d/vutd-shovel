@@ -1,6 +1,8 @@
-import type { GuildSettings } from '@prisma/client';
-import type { ApplicationCommandData, CommandInteraction } from 'discord.js';
-import type { PermissionSetterFunction } from '..';
+import {
+  ApplicationCommandData,
+  ChatInputCommandInteraction,
+  PermissionFlagsBits,
+} from 'discord.js';
 import * as export_ from './export';
 import * as import_ from './import';
 
@@ -10,31 +12,16 @@ import * as import_ from './import';
 export const data: ApplicationCommandData = {
   name: 'dict-bulk',
   description: 'サーバー辞書をまとめて操作するためのコマンドです。',
-  defaultPermission: false,
+  defaultMemberPermissions: PermissionFlagsBits.Administrator,
   options: [export_.data, import_.data],
-};
-
-/**
- * `/dict-bulk` command permission data.
- */
-export const permissions: PermissionSetterFunction = (
-  guildSettings: GuildSettings
-) => {
-  return guildSettings.moderatorRole
-    ? [
-        {
-          type: 'ROLE',
-          id: guildSettings.moderatorRole,
-          permission: true,
-        },
-      ]
-    : [];
 };
 
 /**
  * handles `/dict-bulk` subcommands.
  */
-export async function handle(interaction: CommandInteraction<'cached'>) {
+export async function handle(
+  interaction: ChatInputCommandInteraction<'cached'>
+) {
   const subcommand = interaction.options.getSubcommand(true);
   switch (subcommand) {
     case 'export':

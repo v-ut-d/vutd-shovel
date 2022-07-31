@@ -1,6 +1,7 @@
-import type {
+import {
   ApplicationCommandSubCommandData,
-  CommandInteraction,
+  ChatInputCommandInteraction,
+  ApplicationCommandOptionType,
 } from 'discord.js';
 import { ErrorMessageEmbed, VoiceMessageEmbed } from '../../components';
 import { prisma } from '../../database';
@@ -11,14 +12,16 @@ import rooms from '../../rooms';
  */
 export const data: ApplicationCommandSubCommandData = {
   name: 'random',
-  type: 'SUB_COMMAND',
+  type: ApplicationCommandOptionType.Subcommand,
   description: '読み上げる声の設定をランダムに変更します。',
 };
 
 /**
  * handles `/voice random` command.
  */
-export async function handle(interaction: CommandInteraction<'cached'>) {
+export async function handle(
+  interaction: ChatInputCommandInteraction<'cached'>
+) {
   try {
     const speaker = await rooms.getOrCreateSpeaker(
       interaction.guildId,

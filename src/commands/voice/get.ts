@@ -1,6 +1,7 @@
-import type {
+import {
   ApplicationCommandSubCommandData,
-  CommandInteraction,
+  ChatInputCommandInteraction,
+  ApplicationCommandOptionType,
 } from 'discord.js';
 import { ErrorMessageEmbed, VoiceMessageEmbed } from '../../components';
 import rooms from '../../rooms';
@@ -10,14 +11,16 @@ import rooms from '../../rooms';
  */
 export const data: ApplicationCommandSubCommandData = {
   name: 'get',
-  type: 'SUB_COMMAND',
+  type: ApplicationCommandOptionType.Subcommand,
   description: '現在の読み上げ設定を表示します。',
 };
 
 /**
  * handles `/voice get` command.
  */
-export async function handle(interaction: CommandInteraction<'cached'>) {
+export async function handle(
+  interaction: ChatInputCommandInteraction<'cached'>
+) {
   try {
     const speaker = await rooms.getOrCreateSpeaker(
       interaction.guildId,

@@ -1,6 +1,7 @@
-import type {
+import {
   ApplicationCommandSubCommandData,
-  CommandInteraction,
+  ChatInputCommandInteraction,
+  ApplicationCommandOptionType,
 } from 'discord.js';
 import { ErrorMessageEmbed } from '../../components';
 import SettingMessageEmbed from '../../components/setting';
@@ -11,14 +12,16 @@ import { prisma } from '../../database';
  */
 export const data: ApplicationCommandSubCommandData = {
   name: 'get',
-  type: 'SUB_COMMAND',
+  type: ApplicationCommandOptionType.Subcommand,
   description: '現在のサーバー全体の設定を表示します。',
 };
 
 /**
  * handles `/setting get` command.
  */
-export async function handle(interaction: CommandInteraction<'cached'>) {
+export async function handle(
+  interaction: ChatInputCommandInteraction<'cached'>
+) {
   try {
     const setting = await prisma.guildSettings.upsert({
       where: {
@@ -26,24 +29,9 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
       },
       create: {
         guildId: interaction.guildId,
-        dictionaryWriteRole: interaction.guild.roles.everyone.id,
       },
       update: {},
     });
-
-    const moderatorRoleName = setting.moderatorRole
-      ? `${
-          (await interaction.guild.roles.fetch(setting.moderatorRole)) ??
-          'Not Found'
-        }`
-      : 'Not set';
-
-    const dictRoleName = setting.dictionaryWriteRole
-      ? `${
-          (await interaction.guild.roles.fetch(setting.dictionaryWriteRole)) ??
-          'Not Found'
-        }`
-      : '@everyone';
 
     const numberOfEmojis = await prisma.emoji.count({
       where: {
@@ -60,8 +48,6 @@ export async function handle(interaction: CommandInteraction<'cached'>) {
       embeds: [
         new SettingMessageEmbed('get', {
           setting: setting,
-          moderatorRoleName,
-          dictRoleName,
           numberOfEmojis,
           numberOfDictEntries,
         }),

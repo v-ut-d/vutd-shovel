@@ -1,6 +1,7 @@
-import type {
+import {
   ApplicationCommandSubCommandData,
-  CommandInteraction,
+  ChatInputCommandInteraction,
+  ApplicationCommandOptionType,
 } from 'discord.js';
 import { DictMessageEmbed, ErrorMessageEmbed } from '../../components';
 import { prisma } from '../../database';
@@ -10,12 +11,12 @@ import { prisma } from '../../database';
  */
 export const data: ApplicationCommandSubCommandData = {
   name: 'get',
-  type: 'SUB_COMMAND',
+  type: ApplicationCommandOptionType.Subcommand,
   description: '指定された単語の登録状況を表示します。',
   options: [
     {
       name: 'word',
-      type: 'STRING',
+      type: ApplicationCommandOptionType.String,
       description:
         '登録情報を検索する単語です。ただし、絵文字の場合は一文字で入力してください。',
       required: true,
@@ -26,10 +27,12 @@ export const data: ApplicationCommandSubCommandData = {
 /**
  * handles `/dict get` command.
  */
-export async function handle(interaction: CommandInteraction<'cached'>) {
+export async function handle(
+  interaction: ChatInputCommandInteraction<'cached'>
+) {
   try {
     const fromWord = interaction.options.getString('word', true);
-    const emojiInfo = fromWord.match(/^<:(.+?):(?<emojiId>\d{18})>$/);
+    const emojiInfo = fromWord.match(/^<:(.+?):(?<emojiId>\d{16,19})>$/);
     if (emojiInfo?.groups?.emojiId) {
       //FromWord is Emoji
       const emoji = await prisma.emoji.findUnique({

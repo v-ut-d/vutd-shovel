@@ -1,6 +1,7 @@
-import type {
+import {
   ApplicationCommandSubCommandData,
-  CommandInteraction,
+  ChatInputCommandInteraction,
+  ApplicationCommandOptionType,
 } from 'discord.js';
 import { EmojiBulkMessageEmbed, ErrorMessageEmbed } from '../../components';
 import { prisma } from '../../database';
@@ -10,14 +11,16 @@ import { prisma } from '../../database';
  */
 export const data: ApplicationCommandSubCommandData = {
   name: 'keys',
-  type: 'SUB_COMMAND',
+  type: ApplicationCommandOptionType.Subcommand,
   description: '読み方が設定されていない絵文字のリストを出力します。',
 };
 
 /**
  * handles `/emoji-bulk keys` command.
  */
-export async function handle(interaction: CommandInteraction<'cached'>) {
+export async function handle(
+  interaction: ChatInputCommandInteraction<'cached'>
+) {
   try {
     const [emojisAll, emojisDb] = await Promise.all([
       interaction.guild.emojis.fetch(),

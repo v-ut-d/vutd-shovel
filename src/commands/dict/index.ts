@@ -1,9 +1,11 @@
-import type { ApplicationCommandData, CommandInteraction } from 'discord.js';
+import {
+  ApplicationCommandData,
+  ChatInputCommandInteraction,
+  PermissionFlagsBits,
+} from 'discord.js';
 import * as get from './get';
 import * as set from './set';
 import * as del from './delete';
-import type { PermissionSetterFunction } from '..';
-import type { GuildSettings } from '@prisma/client';
 
 /**
  * `/dict` command data.
@@ -11,29 +13,16 @@ import type { GuildSettings } from '@prisma/client';
 export const data: ApplicationCommandData = {
   name: 'dict',
   description: '辞書に関するコマンド群です。',
-  defaultPermission: false,
+  defaultMemberPermissions: PermissionFlagsBits.Administrator,
   options: [get.data, set.data, del.data],
-};
-
-/**
- * `/dict` command permission data.
- */
-export const permissions: PermissionSetterFunction = (
-  guildSettings: GuildSettings
-) => {
-  return [
-    {
-      type: 'ROLE',
-      id: guildSettings.dictionaryWriteRole,
-      permission: true,
-    },
-  ];
 };
 
 /**
  * handles `/dict` subcommands.
  */
-export async function handle(interaction: CommandInteraction<'cached'>) {
+export async function handle(
+  interaction: ChatInputCommandInteraction<'cached'>
+) {
   const subcommand = interaction.options.getSubcommand(true);
   switch (subcommand) {
     case 'get':

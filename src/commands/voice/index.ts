@@ -1,4 +1,7 @@
-import type { ApplicationCommandData, CommandInteraction } from 'discord.js';
+import type {
+  ApplicationCommandData,
+  ChatInputCommandInteraction,
+} from 'discord.js';
 import * as get from './get';
 import * as random from './random';
 import * as set from './set';
@@ -15,7 +18,9 @@ export const data: ApplicationCommandData = {
 /**
  * handles `/voice` subcommands.
  */
-export async function handle(interaction: CommandInteraction<'cached'>) {
+export async function handle(
+  interaction: ChatInputCommandInteraction<'cached'>
+) {
   const subcommand = interaction.options.getSubcommand(true);
   switch (subcommand) {
     case 'get':

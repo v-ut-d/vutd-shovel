@@ -1,8 +1,6 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
+  binaryTargets= ["native", "debian-openssl-1.1.x", "linux-arm64-openssl-1.1.x"]
 }
 
 datasource db {
@@ -11,8 +9,8 @@ datasource db {
 }
 
 model Member {
-  guildId  String @db.VarChar(18)
-  userId   String @db.VarChar(18)
+  guildId  String @db.VarChar(19)
+  userId   String @db.VarChar(19)
   tone     Float
   speed    Float
   f0       Float
@@ -22,8 +20,8 @@ model Member {
 }
 
 model Emoji {
-  guildId        String @db.VarChar(18)
-  emojiId        String @db.VarChar(18)
+  guildId        String @db.VarChar(19)
+  emojiId        String @db.VarChar(19)
   pronounciation String
 
   @@id([guildId, emojiId])
@@ -38,11 +36,9 @@ model GuildDictionary {
 }
 
 model GuildSettings {
-  guildId             String  @id
-  readMultiLine       Boolean @default(true)
-  readSpeakersName    Boolean @default(false)
-  readEmojis          Boolean @default(true)
-  omitThreshold       Int     @default(200)
-  dictionaryWriteRole String
-  moderatorRole       String?
+  guildId          String  @id
+  readMultiLine    Boolean @default(true)
+  readSpeakersName Boolean @default(false)
+  readEmojis       Boolean @default(true)
+  omitThreshold    Int     @default(200)
 }
