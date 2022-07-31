@@ -5,6 +5,7 @@ import type {
 import * as get from './get';
 import * as random from './random';
 import * as openjtalk from './openjtalk';
+import * as voicevox from './voicevox';
 
 /**
  * `/voice` command data.
@@ -12,7 +13,7 @@ import * as openjtalk from './openjtalk';
 export const data: ApplicationCommandData = {
   name: 'voice',
   description: '自分の読み上げ設定に関するコマンド群です。',
-  options: [get.data, random.data, openjtalk.data],
+  options: [get.data, random.data, openjtalk.data, voicevox.data],
 };
 
 /**
@@ -29,5 +30,7 @@ export async function handle(
       return random.handle(interaction);
     case 'openjtalk':
       return openjtalk.handle(interaction);
+    case 'voicevox':
+      return voicevox.handle(interaction);
   }
 }

@@ -2,12 +2,14 @@ import { Collection, GuildMember } from 'discord.js';
 import { prisma } from '../database';
 import type { BaseSpeaker, OptionsObject, SpeakerClass } from './base';
 import OpenJTalk from './openjtalk';
+import VoiceVox from './voicevox';
 import { PassThrough } from 'stream';
 import SequencialPromiseQueue from './queue/SequencialPromiseQueue';
 import { createAudioResource, StreamType } from '@discordjs/voice';
 
 const speakerDict = {
   openjtalk: OpenJTalk,
+  voicevox: VoiceVox,
 };
 
 // This will detect type mistakes
