@@ -80,11 +80,8 @@ export class RoomManager {
   ) {
     const room = this.cache.get(newState.guild.id)?.get(client.user.id);
     if (!room) return;
-    if (
-      room.client.user?.id &&
-      !room.voiceChannel.members.has(room.client.user?.id)
-    ) {
-      this.destroy(newState.guild.id);
+    if (!room.voiceChannel.members.has(client.user.id)) {
+      this.destroy(newState.guild.id, client.user.id);
       await room.textChannel.send({
         embeds: [new EndMessageEmbed(room, '切断されたため、')],
       });
@@ -92,11 +89,10 @@ export class RoomManager {
     if (
       oldState.channelId === room.voiceChannel.id &&
       newState.channelId !== room.voiceChannel.id && //disconnect or channel switch
-      room.client.user?.id &&
-      room.voiceChannel.members.has(room.client.user?.id) &&
+      room.voiceChannel.members.has(client.user.id) &&
       room.voiceChannel.members.size === 1
     ) {
-      this.destroy(newState.guild.id);
+      this.destroy(newState.guild.id, client.user.id);
       await room.textChannel.send({
         embeds: [
           new EndMessageEmbed(room, 'ボイスチャンネルに誰もいなくなったため、'),
@@ -104,8 +100,8 @@ export class RoomManager {
       });
     }
   }
-  public destroy(guildId: Snowflake) {
-    const room = this.cache.get(guildId)?.first();
+  public destroy(guildId: Snowflake, clientUserId: Snowflake) {
+    const room = this.cache.get(guildId)?.get(clientUserId);
     if (!room) throw new Error('現在読み上げ中ではありません。');
     room.destroy();
     if (room.client.user?.id) {
@@ -114,7 +110,9 @@ export class RoomManager {
     return room;
   }
   public destroyAll() {
-    this.cache.forEach((_, guildId) => this.destroy(guildId));
+    this.cache.forEach((coll, guildId) =>
+      coll.forEach((_, clientUserId) => this.destroy(guildId, clientUserId))
+    );
   }
 }
 

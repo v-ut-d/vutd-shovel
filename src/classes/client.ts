@@ -100,7 +100,7 @@ export default class ClientManager extends EventEmitter {
     const n = { ...guild, client };
     const d = Object.getOwnPropertyDescriptors(Guild.prototype);
     Object.defineProperties(n, d);
-    return n;
+    return n as Guild;
   }
 
   public on<K extends keyof ClientEvents>(
