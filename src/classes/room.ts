@@ -12,6 +12,7 @@ import {
 } from '@discordjs/voice';
 import type { GuildSettings } from '@prisma/client';
 import {
+  Client,
   Collection,
   Guild,
   GuildTextBasedChannel,
@@ -21,7 +22,10 @@ import {
   VoiceBasedChannel,
 } from 'discord.js';
 import { Preprocessor, Speaker } from '.';
+import { clientManager } from '../clientManager';
 import { prisma } from '../database';
+import ClientManager from './client';
+
 import type { Readable } from 'stream';
 /**
  * represents one reading session.
@@ -47,10 +51,20 @@ export default class Room {
   #player: AudioPlayer;
   #preprocessor: Preprocessor;
   #speakers: Collection<Snowflake, Speaker> = new Collection();
+  client: Client;
+
   guildSettings?: GuildSettings;
 
   #loadGuildSettingsPromise;
 
+  /**
+   * Creates an instance of Room.
+   * Responsible for freeing allocated client,
+   * when an exception is thrown.
+   * @param {VoiceBasedChannel} voiceChannel
+   * @param {GuildTextBasedChannel} textChannel
+   * @memberof Room
+   */
   constructor(
     /**
      * voice channel that this room is bound to.
@@ -64,10 +78,18 @@ export default class Room {
     this.guild = voiceChannel.guild;
     this.guildId = voiceChannel.guildId;
 
+    const client = clientManager.allocateClient(this.guildId);
+    if (!client || !client.user?.id) {
+      throw new Error('Could not find any usable client.');
+    }
+    this.client = client;
+    const guild = ClientManager.getAltGuild(this.guild, client);
+
     this.#connection = joinVoiceChannel({
       channelId: voiceChannel.id,
       guildId: voiceChannel.guildId,
-      adapterCreator: voiceChannel.guild.voiceAdapterCreator,
+      adapterCreator: guild.voiceAdapterCreator,
+      group: client.user.id,
       debug: true,
     });
 
@@ -132,25 +154,7 @@ export default class Room {
     let speaker = this.getSpeaker(user.id);
     if (!speaker) {
       speaker = new Speaker(user, true);
-      const options = await prisma.member.findUnique({
-        where: {
-          guildId_userId: {
-            guildId: this.guildId,
-            userId: user.id,
-          },
-        },
-      });
-      if (options) {
-        speaker.options = options;
-      } else {
-        await prisma.member.create({
-          data: {
-            guildId: this.guildId,
-            userId: user.id,
-            ...speaker.options,
-          },
-        });
-      }
+      await speaker.fetchOptions(this.guildId);
       this.#speakers.set(user.id, speaker);
     }
     return speaker;
@@ -160,6 +164,17 @@ export default class Room {
     await this.#preprocessor.loadEmojiDict();
   }
 
+  async reloadSpeakOptions(user?: User) {
+    if (user) {
+      await this.#speakers.get(user.id)?.fetchOptions(this.guildId);
+    } else {
+      await Promise.all(
+        this.#speakers.map((speaker) => {
+          speaker.fetchOptions(this.guildId);
+        })
+      );
+    }
+  }
   async reloadGuildDict() {
     await this.#preprocessor.loadGuildDict();
   }
@@ -216,5 +231,6 @@ export default class Room {
     if (this.#connection.state.status !== VoiceConnectionStatus.Destroyed) {
       this.#connection.destroy();
     }
+    clientManager.freeClient(this.guildId, this.client);
   }
 }

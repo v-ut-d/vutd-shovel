@@ -6,6 +6,7 @@ import {
   silenceOnError,
   synthesis,
 } from 'node-openjtalk-binding-discordjs';
+import { prisma } from '../database';
 
 const voiceDir = './voice';
 
@@ -113,6 +114,28 @@ export default class Speaker {
       this.#options.weight_of_GV_for_log_F0 = options.f0;
     if (options.htsvoice && Speaker.htsvoices.includes(options.htsvoice))
       this.#options.htsvoice = options.htsvoice;
+  }
+
+  public async fetchOptions(guildId: Snowflake) {
+    const options = await prisma.member.findUnique({
+      where: {
+        guildId_userId: {
+          guildId,
+          userId: this.user.id,
+        },
+      },
+    });
+    if (options) {
+      this.options = options;
+    } else {
+      await prisma.member.create({
+        data: {
+          guildId,
+          userId: this.user.id,
+          ...this.options,
+        },
+      });
+    }
   }
 
   /**

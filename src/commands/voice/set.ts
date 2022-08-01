@@ -67,6 +67,13 @@ export async function handle(
       speed: interaction.options.getNumber('speed') ?? undefined,
       f0: interaction.options.getNumber('f0') ?? undefined,
     };
+
+    await rooms.setSpeakerOption(
+      interaction.guildId,
+      interaction.user,
+      speaker.options
+    );
+
     await prisma.member.update({
       where: {
         guildId_userId: {
