@@ -25,11 +25,15 @@ export async function voiceStateUpdate(
   await rooms.onVoiceStateUpdate(oldState, newState);
 }
 
-export function onExit() {
+export function onExit(e: unknown) {
   try {
     rooms.destroyAll();
   } catch (e) {
     console.error(e);
+  }
+  if (e instanceof Error) {
+    console.error(e);
+    process.exit(1);
   }
 }
 
