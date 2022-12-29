@@ -1,7 +1,7 @@
 # Please use `docker buildx build` instead of normal `docker build` to build this Dockerfile.
 # e.g. `docker buildx build --platform=linux/arm64,linux/amd64 .`
 
-FROM --platform=$BUILDPLATFORM node:16-bullseye-slim AS builder
+FROM --platform=$BUILDPLATFORM node:18-bullseye-slim AS builder
 
 WORKDIR /app
 
@@ -33,7 +33,7 @@ RUN npm run compile-dict
 
 
 
-FROM node:16-bullseye-slim
+FROM node:18-bullseye-slim
 
 WORKDIR /app
 ENV NODE_ENV production

@@ -6,10 +6,10 @@ import type { Readable } from 'stream';
 import { BaseSpeaker, OptionsObject } from './base';
 
 import SpeakerData from '../data/voicevox.json';
+import { env } from '../utils';
 
 export default class VoiceVox extends BaseSpeaker {
-  static engine = 'http://localhost:50021';
-  private rpc = axios.create({ baseURL: VoiceVox.engine, proxy: false });
+  private rpc = axios.create({ baseURL: env.VOICEVOX_URL, proxy: false });
 
   static speakers = SpeakerData;
 
@@ -41,13 +41,11 @@ export default class VoiceVox extends BaseSpeaker {
 
   private async synthesis(content: string) {
     const query = await this.rpc.post(
-      `${VoiceVox.engine}/audio_query?text=${encodeURI(content)}&speaker=${
-        this.speakerId
-      }`
+      `/audio_query?text=${encodeURI(content)}&speaker=${this.speakerId}`
     );
     const queryData = (await query.data) as object;
     const synthesis = await this.rpc.post(
-      `${VoiceVox.engine}/synthesis?speaker=${this.speakerId}`,
+      `/synthesis?speaker=${this.speakerId}`,
       JSON.stringify({
         ...queryData,
         speedScale: this.speed,

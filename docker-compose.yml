@@ -16,12 +16,17 @@ services:
     command: postgres -c max_connections=300 -c log_min_messages=LOG
     ports:
       - "5432:5432"
+  voicevox:
+    image: voicevox/voicevox_engine:cpu-latest
+    ports:
+      - "50021:50021"
   vutd-shovel:
-    image: ghcr.io/v-ut-d/vutd-shovel:latest
+    image: ghcr.io/v-ut-d/vutd-shovel:voicevox-latest
     volumes:
       - ./voice:/app/voice
     environment:
       - BOT_TOKEN=${VUTD_SHOVEL_BOT_TOKEN}
+      - VOICEVOX_URL=http://voicevox:50021
       - DATABASE_URL=postgresql://vutd-shovel:vutd-shovel-password@postgres:5432/vutd-shovel?schema=public
     depends_on:
       - postgres
