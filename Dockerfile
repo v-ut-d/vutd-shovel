@@ -38,7 +38,7 @@ FROM node:18-bullseye-slim
 WORKDIR /app
 ENV NODE_ENV production
 
-RUN apt-get update -y&&apt-get install -y openssl \
+RUN apt-get update -y&&apt-get install -y openssl ffmpeg \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
