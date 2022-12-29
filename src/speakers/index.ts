@@ -117,11 +117,15 @@ export class SpeakerManager {
   async set<T extends keyof typeof speakerDict>(
     member: GuildMember,
     key: T,
-    options: Partial<ReturnType<InstanceType<typeof speakerDict[T]>['toJSON']>>
+    options: Partial<
+      ReturnType<
+        InstanceType<typeof speakerDict[keyof typeof speakerDict]>['toJSON']
+      >
+    >
   ) {
-    const speakerClass = speakerDict[key];
-    if (!speakerClass) throw new Error('Unknown key');
-    const speaker = new speakerClass(member, options);
+    const SpeakerClass = speakerDict[key];
+    if (!SpeakerClass) throw new Error('Unknown key');
+    const speaker = new SpeakerClass(member, options);
     this.setCache(member, speaker);
     await this.save(member, key, speaker.toJSON());
   }
