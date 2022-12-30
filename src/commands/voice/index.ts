@@ -1,5 +1,6 @@
 import type {
   ApplicationCommandData,
+  AutocompleteInteraction,
   ChatInputCommandInteraction,
 } from 'discord.js';
 import * as get from './get';
@@ -32,5 +33,15 @@ export async function handle(
       return openjtalk.handle(interaction);
     case 'voicevox':
       return voicevox.handle(interaction);
+  }
+}
+
+export async function autocomplete(
+  interaction: AutocompleteInteraction<'cached'>
+) {
+  const subcommand = interaction.options.getSubcommand(true);
+  switch (subcommand) {
+    case 'voicevox':
+      return voicevox.autocomplete(interaction);
   }
 }

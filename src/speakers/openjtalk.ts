@@ -73,7 +73,7 @@ export default class OpenJTalk extends BaseSpeaker {
     };
   }
 
-  display(): APIEmbedField[] {
+  async display(): Promise<APIEmbedField[]> {
     return [
       {
         name: '音声合成エンジン',

@@ -1,6 +1,8 @@
 import {
+  ApplicationCommandOptionChoiceData,
   ApplicationCommandOptionType,
   ApplicationCommandSubCommandData,
+  AutocompleteInteraction,
   ChatInputCommandInteraction,
 } from 'discord.js';
 import { ErrorMessageEmbed, VoiceMessageEmbed } from '../../components';
@@ -18,12 +20,17 @@ export const data: ApplicationCommandSubCommandData = {
   options: [
     {
       name: 'speaker',
-      type: ApplicationCommandOptionType.Number,
+      type: ApplicationCommandOptionType.String,
       description: 'キャラクターを指定します。',
-      choices: VoiceVox.speakers.map((data) => ({
-        name: data.name,
-        value: data.id,
-      })),
+      required: true,
+      autocomplete: true,
+    },
+    {
+      name: 'style',
+      type: ApplicationCommandOptionType.Number,
+      description: 'スタイルを指定します。',
+      required: true,
+      autocomplete: true,
     },
     {
       name: 'pitch',
@@ -57,7 +64,7 @@ export async function handle(
 ) {
   try {
     await speakers.set(interaction.member, 'voicevox', {
-      speakerId: interaction.options.getNumber('speaker') ?? undefined,
+      speakerId: interaction.options.getNumber('style') ?? undefined,
       pitch: interaction.options.getNumber('tone') ?? undefined,
       speed: interaction.options.getNumber('speed') ?? undefined,
       intonation: interaction.options.getNumber('f0') ?? undefined,
@@ -71,4 +78,38 @@ export async function handle(
       embeds: [new ErrorMessageEmbed('読み上げ設定', e)],
     });
   }
+}
+
+export async function autocomplete(
+  interaction: AutocompleteInteraction<'cached'>
+) {
+  const focusedOption = interaction.options.getFocused(true);
+  const speakers = await VoiceVox.speakers;
+  let choices: ApplicationCommandOptionChoiceData[] = [];
+
+  switch (focusedOption.name) {
+    case 'speaker':
+      choices = speakers.map((speaker) => ({
+        name: speaker.name,
+        value: speaker.speaker_uuid,
+      }));
+      break;
+    case 'style': {
+      const speakerUUID = interaction.options.getString('speaker');
+      const speaker = speakers.find(
+        (speaker) => speaker.speaker_uuid === speakerUUID
+      );
+      if (speaker) {
+        choices = speaker.styles.map((style) => ({
+          name: style.name,
+          value: style.id,
+        }));
+      }
+    }
+  }
+
+  const filtered = choices.filter((choice) =>
+    choice.name.startsWith(focusedOption.value)
+  );
+  await interaction.respond(filtered);
 }

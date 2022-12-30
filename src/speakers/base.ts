@@ -12,7 +12,7 @@ export abstract class BaseSpeaker {
   ): Promise<{ data: Readable; streamType: StreamType }>;
 
   abstract toJSON(): OptionsObject;
-  abstract display(): APIEmbedField[];
+  abstract display(): Promise<APIEmbedField[]>;
 }
 
 export interface SpeakerClass<T extends BaseSpeaker = BaseSpeaker> {

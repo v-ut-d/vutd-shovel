@@ -5,6 +5,7 @@ import type {
   ChatInputCommandInteraction,
   Guild,
   GuildApplicationCommandManager,
+  AutocompleteInteraction,
 } from 'discord.js';
 import { Collection } from 'discord.js';
 import { env } from '../utils';
@@ -21,6 +22,7 @@ import * as help from './help';
 interface CommandDefinition {
   data: ApplicationCommandData;
   handle(interaction: ChatInputCommandInteraction<'cached'>): Promise<void>;
+  autocomplete?(interaction: AutocompleteInteraction<'cached'>): Promise<void>;
 }
 
 class CommandManager<Production extends boolean> {
@@ -51,6 +53,12 @@ class CommandManager<Production extends boolean> {
     return this.#commandDefinitions
       .get(interaction.commandName)
       ?.handle(interaction);
+  }
+
+  async autocomplete(interaction: AutocompleteInteraction<'cached'>) {
+    return this.#commandDefinitions
+      .get(interaction.commandName)
+      ?.autocomplete?.(interaction);
   }
 
   async addGuild(guild: Guild) {

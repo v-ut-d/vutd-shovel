@@ -1,17 +1,56 @@
 import { StreamType } from '@discordjs/voice';
 import axios from 'axios';
-import type { APIEmbedField, GuildMember } from 'discord.js';
+import { APIEmbedField, Collection, GuildMember } from 'discord.js';
 import type { Readable } from 'stream';
 
 import { BaseSpeaker, OptionsObject } from './base';
 
-import SpeakerData from '../data/voicevox.json';
 import { env } from '../utils';
 
-export default class VoiceVox extends BaseSpeaker {
-  private rpc = axios.create({ baseURL: env.VOICEVOX_URL, proxy: false });
+import Credits from '../data/voicevox_credits.json';
 
-  static speakers = SpeakerData;
+interface Speaker {
+  name: string;
+  speaker_uuid: string;
+  version: string;
+  styles: SpeakerStyle[];
+}
+
+interface SpeakerStyle {
+  name: string;
+  id: number;
+}
+
+export default class VoiceVox extends BaseSpeaker {
+  static rpc = axios.create({ baseURL: env.VOICEVOX_URL, proxy: false });
+
+  static speakers: Promise<Speaker[]> = VoiceVox.rpc
+    .get('/speakers')
+    .then(async (speakers) => speakers.data)
+    .catch(() => []);
+  static speakerDict: Promise<Collection<number, string>> = VoiceVox.speakers
+    .then((speakers) =>
+      speakers.map((speaker) =>
+        speaker.styles.map(
+          (style) =>
+            [
+              style.id,
+              `${speaker.name}(${style.name})${VoiceVox.credit(
+                speaker.speaker_uuid
+              )}`,
+            ] as const
+        )
+      )
+    )
+    .then((speakers) => new Collection(speakers.flat()));
+
+  static credit(uuid: string) {
+    if (uuid in Credits) {
+      return `(${Credits[uuid as keyof typeof Credits]})`;
+    } else {
+      return '';
+    }
+  }
 
   private speakerId;
   private speed;
@@ -40,11 +79,11 @@ export default class VoiceVox extends BaseSpeaker {
   }
 
   private async synthesis(content: string) {
-    const query = await this.rpc.post(
+    const query = await VoiceVox.rpc.post(
       `/audio_query?text=${encodeURI(content)}&speaker=${this.speakerId}`
     );
     const queryData = (await query.data) as object;
-    const synthesis = await this.rpc.post(
+    const synthesis = await VoiceVox.rpc.post(
       `/synthesis?speaker=${this.speakerId}`,
       JSON.stringify({
         ...queryData,
@@ -64,7 +103,8 @@ export default class VoiceVox extends BaseSpeaker {
     return synthesis.data as Readable;
   }
 
-  display(): APIEmbedField[] {
+  async display(): Promise<APIEmbedField[]> {
+    const speaker = (await VoiceVox.speakerDict).get(this.speakerId);
     return [
       {
         name: '音声合成エンジン',
@@ -72,7 +112,7 @@ export default class VoiceVox extends BaseSpeaker {
       },
       {
         name: 'キャラクター',
-        value: `VOICEVOX:${this.speaker?.name}${this.speaker?.credit ?? ''}`,
+        value: `VOICEVOX:${speaker}`,
       },
       {
         name: '声の高さ',
@@ -98,10 +138,6 @@ export default class VoiceVox extends BaseSpeaker {
       pitch: this.pitch,
       intonation: this.intonation,
     };
-  }
-
-  private get speaker() {
-    return VoiceVox.speakers.find((d) => d.id === this.speakerId);
   }
 
   static random(member: GuildMember) {
