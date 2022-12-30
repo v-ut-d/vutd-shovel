@@ -28,7 +28,8 @@ export const data: ApplicationCommandSubCommandData = {
     {
       name: 'style',
       type: ApplicationCommandOptionType.Number,
-      description: 'スタイルを指定します。',
+      description:
+        'スタイルを指定します。先にキャラクターを指定する必要があります。',
       required: true,
       autocomplete: true,
     },
