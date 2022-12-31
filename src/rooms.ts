@@ -55,9 +55,11 @@ export class RoomManager {
       !room.voiceChannel.members.has(room.voiceChannel.client.user?.id)
     ) {
       this.destroy(newState.guild.id);
-      await room.textChannel.send({
-        embeds: [new EndMessageEmbed(room, '切断されたため、')],
-      });
+      await room.textChannel
+        .send({
+          embeds: [new EndMessageEmbed(room, '切断されたため、')],
+        })
+        .catch((e) => console.error(e));
     }
     if (
       oldState.channelId === room.voiceChannel.id &&
@@ -67,11 +69,16 @@ export class RoomManager {
       room.voiceChannel.members.size === 1
     ) {
       this.destroy(newState.guild.id);
-      await room.textChannel.send({
-        embeds: [
-          new EndMessageEmbed(room, 'ボイスチャンネルに誰もいなくなったため、'),
-        ],
-      });
+      await room.textChannel
+        .send({
+          embeds: [
+            new EndMessageEmbed(
+              room,
+              'ボイスチャンネルに誰もいなくなったため、'
+            ),
+          ],
+        })
+        .catch((e) => console.error(e));
     }
   }
   public destroy(guildId: Snowflake) {
