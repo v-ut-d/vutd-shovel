@@ -1,7 +1,7 @@
 # Please use `docker buildx build` instead of normal `docker build` to build this Dockerfile.
 # e.g. `docker buildx build --platform=linux/arm64,linux/amd64 .`
 
-FROM --platform=$BUILDPLATFORM node:18-bullseye-slim AS builder
+FROM --platform=$BUILDPLATFORM node:18-bullseye-slim AS base
 
 WORKDIR /app
 
@@ -14,19 +14,22 @@ RUN sed '/prepare/d' -i package.json
 
 RUN npm ci --ignore-scripts
 
+FROM base AS builder
+
 COPY ./tsconfig.json ./prisma/schema.prisma ./
 COPY ./src ./src
 RUN npm run build
 
 
-
-FROM builder AS modules
+FROM base AS modules
 ARG TARGETARCH
+
+COPY ./prisma/schema.prisma ./
 RUN npm ci --target_arch=$(echo "$TARGETARCH"|sed s/amd64/x64/)
 
 
 
-FROM builder AS dict
+FROM base AS dict
 RUN npm --prefix node_modules/node-openjtalk-binding/ run install
 COPY ./script ./script
 RUN npm run compile-dict
@@ -44,8 +47,8 @@ RUN apt-get update -y&&apt-get install -y openssl ffmpeg \
 
 COPY ./prisma ./prisma
 COPY ./package*.json ./
-COPY --from=builder /app/dist ./dist
-COPY --from=dict /app/dictionary ./dictionary
 COPY --from=modules /app/node_modules ./node_modules
+COPY --from=dict /app/dictionary ./dictionary
+COPY --from=builder /app/dist ./dist
 
 CMD ["npm", "start"]
