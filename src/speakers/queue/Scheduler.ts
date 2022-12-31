@@ -49,6 +49,7 @@ export default class Scheduler {
       this.#concurrency--;
       this.#synthesize();
     });
+    this.#synthesize();
   }
   async #synthesizeFirst(release: () => void) {
     const chunk = this.#synthesisQueue.shift();
