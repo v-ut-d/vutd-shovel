@@ -63,14 +63,18 @@ export default class OpenJTalk extends BaseSpeaker {
   }
 
   async synthesize(content: string) {
-    const stream = synthesis(content, {
-      dictionary: './dictionary',
-      ...this.#options,
-    });
-    return {
-      data: stream,
-      streamType: StreamType.Raw,
-    };
+    return [
+      async () => {
+        const stream = synthesis(content, {
+          dictionary: './dictionary',
+          ...this.#options,
+        });
+        return {
+          data: stream,
+          streamType: StreamType.Raw,
+        };
+      },
+    ];
   }
 
   async display(): Promise<APIEmbedField[]> {

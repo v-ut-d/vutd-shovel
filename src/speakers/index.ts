@@ -3,9 +3,7 @@ import { prisma } from '../database';
 import type { BaseSpeaker, OptionsObject, SpeakerClass } from './base';
 import OpenJTalk from './openjtalk';
 import VoiceVox from './voicevox';
-import { PassThrough } from 'stream';
-import SequencialPromiseQueue from './queue/SequencialPromiseQueue';
-import { createAudioResource, StreamType } from '@discordjs/voice';
+import type { Executor } from './queue/Scheduler';
 
 const speakerDict = {
   openjtalk: OpenJTalk,
@@ -16,7 +14,6 @@ const speakerDict = {
 const speakersArray: [string, SpeakerClass][] = Object.entries(speakerDict);
 
 export class SpeakerManager {
-  private seq = new SequencialPromiseQueue();
   private cache: Collection<string, Collection<string, BaseSpeaker>> =
     new Collection();
   private setCache(member: GuildMember, speaker: BaseSpeaker) {
@@ -86,28 +83,9 @@ export class SpeakerManager {
     member: GuildMember,
     content: string,
     onError?: (e: Error) => void
-  ) {
-    return this.seq.exec(async (release) => {
-      const speaker = await this.ensureCache(member);
-      const data = await speaker.synthesize(content).catch((e) => onError?.(e));
-
-      const stream = new PassThrough();
-      stream.once('data', release);
-      if (data) {
-        data.data.on('error', (e) => {
-          onError?.(e);
-          stream.push(null);
-        });
-        data.data.pipe(stream);
-      } else {
-        setImmediate(() => {
-          stream.push(null);
-        });
-      }
-      return createAudioResource(stream, {
-        inputType: data?.streamType ?? StreamType.Raw,
-      });
-    });
+  ): Promise<Executor[]> {
+    const speaker = await this.ensureCache(member);
+    return await speaker.synthesize(content, onError);
   }
   async display(member: GuildMember) {
     const speaker = await this.ensureCache(member);

@@ -1,7 +1,5 @@
 import {
   AudioPlayer,
-  AudioPlayerStatus,
-  AudioResource,
   entersState,
   joinVoiceChannel,
   NoSubscriberBehavior,
@@ -19,6 +17,7 @@ import type {
 import { Preprocessor } from '.';
 import { prisma } from '../database';
 import { speakers } from '../speakers';
+import Scheduler from '../speakers/queue/Scheduler';
 /**
  * represents one reading session.
  * exists at most 1 per {@link Guild}.
@@ -37,10 +36,11 @@ export default class Room {
 
   #connection: VoiceConnection;
   #messageCollector: MessageCollector;
-  #playQueue: AudioResource[] = [];
   #player: AudioPlayer;
   #preprocessor: Preprocessor;
   guildSettings?: GuildSettings;
+
+  #scheduler: Scheduler;
 
   #loadGuildSettingsPromise;
 
@@ -71,9 +71,7 @@ export default class Room {
       debug: true,
     });
 
-    this.#player.on('stateChange', (_, state) => {
-      if (state.status === AudioPlayerStatus.Idle) this.#play();
-    });
+    this.#scheduler = new Scheduler(this.#player);
 
     this.#connection.subscribe(this.#player);
 
@@ -99,13 +97,12 @@ export default class Room {
       const preprocessed = this.#preprocessor.exec(
         prefix + message.cleanContent
       );
-      const resource = await speakers.synthesize(
+      const executors = await speakers.synthesize(
         message.member,
         preprocessed,
         (e) => console.error(e)
       );
-      this.#playQueue.push(resource);
-      this.#play();
+      this.#scheduler.enqueue(executors);
     });
   }
 
@@ -141,13 +138,6 @@ export default class Room {
       update: {},
     });
     this.guildSettings = guildSettings;
-  }
-
-  #play() {
-    if (this.#player.state.status === AudioPlayerStatus.Idle) {
-      const resource = this.#playQueue.shift();
-      if (resource) this.#player.play(resource);
-    }
   }
 
   cancel() {

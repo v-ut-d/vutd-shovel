@@ -21,6 +21,36 @@ interface SpeakerStyle {
   id: number;
 }
 
+interface AudioQuery {
+  speedScale: number;
+  pitchScale: number;
+  intonationScale: number;
+  volumeScale: number;
+  prePhonemeLength: number;
+  postPhonemeLength: number;
+  outputSamplingRate: number;
+  outputStereo: boolean;
+  kana?: string;
+  accent_phrases: AccentPhrase[];
+}
+
+interface AccentPhrase {
+  moras: Mora[];
+  accent: number;
+  pause_mora: object;
+  is_interrogative: boolean;
+}
+
+interface Mora {
+  description?: string;
+  text: string;
+  consonant: string | null;
+  consonant_length: number | null;
+  vowel: string;
+  vowel_length: number;
+  pitch: number;
+}
+
 export default class VoiceVox extends BaseSpeaker {
   static rpc = axios.create({ baseURL: env.VOICEVOX_URL, proxy: false });
 
@@ -74,15 +104,37 @@ export default class VoiceVox extends BaseSpeaker {
   }
 
   async synthesize(content: string) {
-    const stream = await this.synthesis(content);
-    return { data: stream, streamType: StreamType.Arbitrary };
-  }
-
-  private async synthesis(content: string) {
     const query = await VoiceVox.rpc.post(
       `/audio_query?text=${encodeURI(content)}&speaker=${this.speakerId}`
     );
-    const queryData = (await query.data) as object;
+    const queryData = (await query.data) as AudioQuery;
+
+    let chunkId = 0;
+    const chunks: AccentPhrase[][] = [[]];
+    let t = 0;
+    for (const acc of queryData.accent_phrases) {
+      chunks[chunkId].push(acc);
+      t += acc.moras.reduce(
+        (prev, curr) => prev + (curr.consonant_length ?? 0) + curr.vowel_length,
+        0
+      );
+      if (t > 2 || acc.pause_mora) {
+        t = 0;
+        chunks.push([]);
+        chunkId++;
+      }
+    }
+
+    return chunks.map((accent_phrases) => {
+      const q = { ...queryData, accent_phrases };
+      return async () => {
+        const stream = await this.synthesis(q);
+        return { data: stream, streamType: StreamType.Arbitrary };
+      };
+    });
+  }
+
+  private async synthesis(queryData: AudioQuery) {
     const synthesis = await VoiceVox.rpc.post(
       `/synthesis?speaker=${this.speakerId}`,
       JSON.stringify({
