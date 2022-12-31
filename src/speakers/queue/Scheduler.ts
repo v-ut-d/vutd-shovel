@@ -5,6 +5,7 @@ import {
   AudioPlayerStatus,
 } from '@discordjs/voice';
 import { Collection } from 'discord.js';
+import { silenceOnError } from 'node-openjtalk-binding-discordjs';
 import { Readable } from 'stream';
 import { env } from '../../utils';
 
@@ -57,7 +58,7 @@ export default class Scheduler {
     const data = await chunk.executor();
     data.data.once('data', release);
 
-    const buf = await this.#streamToBuffer(data.data);
+    const buf = await this.#streamToBuffer(silenceOnError(data.data));
     this.#playQueue.set(chunk.sequence, {
       data: buf,
       streamType: data.streamType,
@@ -99,7 +100,7 @@ export default class Scheduler {
           buffers.push(buffer);
         }
       });
-      stream.on('end', function () {
+      stream.on('end', () => {
         resolve(Buffer.concat(buffers));
       });
     });

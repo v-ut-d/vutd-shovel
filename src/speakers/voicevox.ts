@@ -129,6 +129,9 @@ export default class VoiceVox extends BaseSpeaker {
       const q = { ...queryData, accent_phrases };
       return async () => {
         const stream = await this.synthesis(q);
+        stream.on('error', () => {
+          console.error('VoiceVox: synthesis failed.');
+        });
         return { data: stream, streamType: StreamType.Arbitrary };
       };
     });

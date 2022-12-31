@@ -69,6 +69,9 @@ export default class OpenJTalk extends BaseSpeaker {
           dictionary: './dictionary',
           ...this.#options,
         });
+        stream.on('error', () => {
+          console.error('OpenJTalk: synthesis failed.');
+        });
         return {
           data: stream,
           streamType: StreamType.Raw,
