@@ -35,6 +35,7 @@ export default class Scheduler {
 
   enqueue(executors: Executor[]) {
     for (const executor of executors) {
+      //console.log('Enqueued:', this.#synthseq);
       this.#synthesisQueue.push({
         executor,
         sequence: this.#synthseq++,
@@ -45,16 +46,21 @@ export default class Scheduler {
 
   #synthesize() {
     if (this.#concurrency > env.MAX_CONCURRENCY) return;
+    //console.log('Concurrency:', this.#concurrency);
+
+    const chunk = this.#synthesisQueue.shift();
+    if (!chunk) return;
+
     this.#concurrency++;
-    this.#synthesizeFirst(() => {
+    this.#doSynthesis(chunk, () => {
       this.#concurrency--;
       this.#synthesize();
     });
     this.#synthesize();
   }
-  async #synthesizeFirst(release: () => void) {
-    const chunk = this.#synthesisQueue.shift();
-    if (!chunk) return;
+  async #doSynthesis(chunk: Chunk, release: () => void) {
+    //console.log('Synthesize:', chunk.sequence);
+
     const data = await chunk.executor();
     data.data.once('data', release);
 
@@ -68,19 +74,15 @@ export default class Scheduler {
 
   async #play() {
     if (this.#player.state.status === AudioPlayerStatus.Idle) {
-      if (
-        this.#synthesisQueue.length > 0 &&
-        this.#playseq >= this.#synthseq - 1
-      )
-        return;
       const data = this.#playQueue.get(this.#playseq);
       if (!data) return;
+      //console.log('Play:', this.#playseq, '/', Array.from(this.#playQueue.keys()));
       this.#playQueue.delete(this.#playseq);
-      this.#playFirst(data);
+      this.#doPlay(data);
       this.#playseq++;
     }
   }
-  #playFirst(data: BufferdAudioData) {
+  #doPlay(data: BufferdAudioData) {
     if (!data.data) return;
     const resource = createAudioResource(Readable.from(data.data), {
       inputType: data?.streamType ?? StreamType.Raw,
