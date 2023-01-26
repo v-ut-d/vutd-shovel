@@ -9,6 +9,7 @@ export async function interaction(interaction: Interaction) {
   if (!interaction.inCachedGuild()) return;
   try {
     if (interaction.isChatInputCommand()) await commands.handle(interaction);
+    if (interaction.isAutocomplete()) await commands.autocomplete(interaction);
   } catch (e) {
     console.error(e);
   }
@@ -31,6 +32,7 @@ export function onExit() {
   } catch (e) {
     console.error(e);
   }
+  process.exit(0);
 }
 
 /**

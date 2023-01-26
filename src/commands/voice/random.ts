@@ -4,8 +4,7 @@ import {
   ApplicationCommandOptionType,
 } from 'discord.js';
 import { ErrorMessageEmbed, VoiceMessageEmbed } from '../../components';
-import { prisma } from '../../database';
-import rooms from '../../rooms';
+import { speakers } from '../../speakers';
 
 /**
  * `/voice random` command data.
@@ -23,22 +22,10 @@ export async function handle(
   interaction: ChatInputCommandInteraction<'cached'>
 ) {
   try {
-    const speaker = await rooms.getOrCreateSpeaker(
-      interaction.guildId,
-      interaction.user
-    );
-    speaker.setRandomOptions();
-    await prisma.member.update({
-      where: {
-        guildId_userId: {
-          guildId: interaction.guildId,
-          userId: interaction.user.id,
-        },
-      },
-      data: speaker.options,
-    });
+    await speakers.random(interaction.member);
+    const fields = await speakers.display(interaction.member);
     await interaction.reply({
-      embeds: [new VoiceMessageEmbed('set', speaker.options)],
+      embeds: [new VoiceMessageEmbed('set', fields)],
     });
   } catch (e) {
     await interaction.reply({

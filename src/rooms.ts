@@ -2,7 +2,6 @@ import {
   Collection,
   GuildTextBasedChannel,
   StageChannel,
-  User,
   VoiceChannel,
   VoiceState,
   type Snowflake,
@@ -48,11 +47,6 @@ export class RoomManager {
     if (!room) return;
     await room.loadGuildSettings();
   }
-  public async getOrCreateSpeaker(guildId: Snowflake, user: User) {
-    const room = this.cache.get(guildId);
-    if (!room) throw new Error('現在読み上げ中ではありません。');
-    return await room.getOrCreateSpeaker(user);
-  }
   public async onVoiceStateUpdate(oldState: VoiceState, newState: VoiceState) {
     const room = this.cache.get(newState.guild.id);
     if (!room) return;
@@ -61,9 +55,11 @@ export class RoomManager {
       !room.voiceChannel.members.has(room.voiceChannel.client.user?.id)
     ) {
       this.destroy(newState.guild.id);
-      await room.textChannel.send({
-        embeds: [new EndMessageEmbed(room, '切断されたため、')],
-      });
+      await room.textChannel
+        .send({
+          embeds: [new EndMessageEmbed(room, '切断されたため、')],
+        })
+        .catch((e) => console.error(e));
     }
     if (
       oldState.channelId === room.voiceChannel.id &&
@@ -73,11 +69,16 @@ export class RoomManager {
       room.voiceChannel.members.size === 1
     ) {
       this.destroy(newState.guild.id);
-      await room.textChannel.send({
-        embeds: [
-          new EndMessageEmbed(room, 'ボイスチャンネルに誰もいなくなったため、'),
-        ],
-      });
+      await room.textChannel
+        .send({
+          embeds: [
+            new EndMessageEmbed(
+              room,
+              'ボイスチャンネルに誰もいなくなったため、'
+            ),
+          ],
+        })
+        .catch((e) => console.error(e));
     }
   }
   public destroy(guildId: Snowflake) {

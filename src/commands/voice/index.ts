@@ -1,10 +1,12 @@
 import type {
   ApplicationCommandData,
+  AutocompleteInteraction,
   ChatInputCommandInteraction,
 } from 'discord.js';
 import * as get from './get';
 import * as random from './random';
-import * as set from './set';
+import * as openjtalk from './openjtalk';
+import * as voicevox from './voicevox';
 
 /**
  * `/voice` command data.
@@ -12,7 +14,7 @@ import * as set from './set';
 export const data: ApplicationCommandData = {
   name: 'voice',
   description: '自分の読み上げ設定に関するコマンド群です。',
-  options: [get.data, random.data, set.data],
+  options: [get.data, random.data, openjtalk.data, voicevox.data],
 };
 
 /**
@@ -27,7 +29,19 @@ export async function handle(
       return get.handle(interaction);
     case 'random':
       return random.handle(interaction);
-    case 'set':
-      return set.handle(interaction);
+    case 'openjtalk':
+      return openjtalk.handle(interaction);
+    case 'voicevox':
+      return voicevox.handle(interaction);
+  }
+}
+
+export async function autocomplete(
+  interaction: AutocompleteInteraction<'cached'>
+) {
+  const subcommand = interaction.options.getSubcommand(true);
+  switch (subcommand) {
+    case 'voicevox':
+      return voicevox.autocomplete(interaction);
   }
 }

@@ -9,6 +9,12 @@ if (process.env.NODE_ENV !== 'production')
  */
 export const env = readenv({
   BOT_TOKEN: {},
+  VOICEVOX_URL: {
+    default: 'http://127.0.0.1:50021',
+  },
+  MAX_CONCURRENCY: {
+    default: 1,
+  },
   production: {
     from: 'NODE_ENV',
     default: false,

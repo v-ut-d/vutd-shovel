@@ -4,24 +4,24 @@ import {
   ChatInputCommandInteraction,
 } from 'discord.js';
 import path from 'path';
-import { Speaker } from '../../classes';
 import { ErrorMessageEmbed, VoiceMessageEmbed } from '../../components';
-import { prisma } from '../../database';
-import rooms from '../../rooms';
+import { speakers } from '../../speakers';
+import OpenJTalk from '../../speakers/openjtalk';
 
 /**
  * `/voice set` command data.
  */
 export const data: ApplicationCommandSubCommandData = {
-  name: 'set',
+  name: 'openjtalk',
   type: ApplicationCommandOptionType.Subcommand,
-  description: '読み上げる声の設定を指定して変更します。',
+  description:
+    '合成エンジンをOpenJTalkに切り替え、読み上げる声の設定を変更します。',
   options: [
     {
       name: 'htsvoice',
       type: ApplicationCommandOptionType.String,
       description: '声質を指定します。',
-      choices: Speaker.htsvoices.map((value) => ({
+      choices: OpenJTalk.htsvoices.map((value) => ({
         name: path.basename(value).replace(/\..+?$/, ''),
         value,
       })),
@@ -57,27 +57,15 @@ export async function handle(
   interaction: ChatInputCommandInteraction<'cached'>
 ) {
   try {
-    const speaker = await rooms.getOrCreateSpeaker(
-      interaction.guildId,
-      interaction.user
-    );
-    speaker.options = {
+    await speakers.set(interaction.member, 'openjtalk', {
       htsvoice: interaction.options.getString('htsvoice') ?? undefined,
       tone: interaction.options.getNumber('tone') ?? undefined,
       speed: interaction.options.getNumber('speed') ?? undefined,
       f0: interaction.options.getNumber('f0') ?? undefined,
-    };
-    await prisma.member.update({
-      where: {
-        guildId_userId: {
-          guildId: interaction.guildId,
-          userId: interaction.user.id,
-        },
-      },
-      data: speaker.options,
     });
+    const fields = await speakers.display(interaction.member);
     await interaction.reply({
-      embeds: [new VoiceMessageEmbed('set', speaker.options)],
+      embeds: [new VoiceMessageEmbed('set', fields)],
     });
   } catch (e) {
     await interaction.reply({

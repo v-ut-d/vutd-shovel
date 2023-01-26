@@ -1,9 +1,5 @@
 import {
-  createAudioResource,
-  StreamType,
   AudioPlayer,
-  AudioPlayerStatus,
-  AudioResource,
   entersState,
   joinVoiceChannel,
   NoSubscriberBehavior,
@@ -11,18 +7,17 @@ import {
   VoiceConnectionStatus,
 } from '@discordjs/voice';
 import type { GuildSettings } from '@prisma/client';
-import {
-  Collection,
+import type {
   Guild,
   GuildTextBasedChannel,
   MessageCollector,
   Snowflake,
-  User,
   VoiceBasedChannel,
 } from 'discord.js';
-import { Preprocessor, Speaker } from '.';
+import { Preprocessor } from '.';
 import { prisma } from '../database';
-import type { Readable } from 'stream';
+import { speakers } from '../speakers';
+import Scheduler from '../speakers/queue/Scheduler';
 /**
  * represents one reading session.
  * exists at most 1 per {@link Guild}.
@@ -41,13 +36,11 @@ export default class Room {
 
   #connection: VoiceConnection;
   #messageCollector: MessageCollector;
-  #synthesizing = 0;
-  #synthesisQueue: (() => Readable)[] = [];
-  #playQueue: AudioResource[] = [];
   #player: AudioPlayer;
   #preprocessor: Preprocessor;
-  #speakers: Collection<Snowflake, Speaker> = new Collection();
   guildSettings?: GuildSettings;
+
+  #scheduler: Scheduler;
 
   #loadGuildSettingsPromise;
 
@@ -78,9 +71,7 @@ export default class Room {
       debug: true,
     });
 
-    this.#player.on('stateChange', (_, state) => {
-      if (state.status === AudioPlayerStatus.Idle) this.#play();
-    });
+    this.#scheduler = new Scheduler(this.#player);
 
     this.#connection.subscribe(this.#player);
 
@@ -96,8 +87,8 @@ export default class Room {
     });
 
     this.#messageCollector.on('collect', async (message) => {
+      if (!message.member) return;
       if (!this.guildSettings) return;
-      const speaker = await this.getOrCreateSpeaker(message.author);
       let prefix = '';
       if (this.guildSettings.readSpeakersName) {
         const guildMember = await this.guild.members.fetch(message.author);
@@ -106,8 +97,12 @@ export default class Room {
       const preprocessed = this.#preprocessor.exec(
         prefix + message.cleanContent
       );
-      this.#synthesisQueue.push(speaker.synth.bind(speaker, preprocessed));
-      this.#synth();
+      const executors = await speakers.synthesize(
+        message.member,
+        preprocessed,
+        (e) => console.error(e)
+      );
+      this.#scheduler.enqueue(executors);
     });
   }
 
@@ -122,38 +117,6 @@ export default class Room {
       this.#loadGuildSettingsPromise,
     ]);
     return;
-  }
-
-  getSpeaker(userId: Snowflake) {
-    return this.#speakers.get(userId);
-  }
-
-  async getOrCreateSpeaker(user: User) {
-    let speaker = this.getSpeaker(user.id);
-    if (!speaker) {
-      speaker = new Speaker(user, true);
-      const options = await prisma.member.findUnique({
-        where: {
-          guildId_userId: {
-            guildId: this.guildId,
-            userId: user.id,
-          },
-        },
-      });
-      if (options) {
-        speaker.options = options;
-      } else {
-        await prisma.member.create({
-          data: {
-            guildId: this.guildId,
-            userId: user.id,
-            ...speaker.options,
-          },
-        });
-      }
-      this.#speakers.set(user.id, speaker);
-    }
-    return speaker;
   }
 
   async reloadEmojiDict() {
@@ -175,31 +138,6 @@ export default class Room {
       update: {},
     });
     this.guildSettings = guildSettings;
-  }
-
-  #synth() {
-    if (this.#synthesizing > 0) return;
-    const synth = this.#synthesisQueue.shift();
-    if (synth) {
-      this.#synthesizing += 1;
-      const stream = synth();
-      stream.once('data', () => {
-        this.#synthesizing -= 1;
-        this.#synth();
-      });
-      this.#playQueue.push(
-        createAudioResource(stream, {
-          inputType: StreamType.Raw,
-        })
-      );
-      this.#play();
-    }
-  }
-  #play() {
-    if (this.#player.state.status === AudioPlayerStatus.Idle) {
-      const resource = this.#playQueue.shift();
-      if (resource) this.#player.play(resource);
-    }
   }
 
   cancel() {

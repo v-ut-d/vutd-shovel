@@ -9,12 +9,10 @@ datasource db {
 }
 
 model Member {
-  guildId  String @db.VarChar(19)
-  userId   String @db.VarChar(19)
-  tone     Float
-  speed    Float
-  f0       Float
-  htsvoice String
+  guildId          String @db.VarChar(19)
+  userId           String @db.VarChar(19)
+  synthesisEngine  String
+  synthesisOptions Json
 
   @@id([guildId, userId])
 }
