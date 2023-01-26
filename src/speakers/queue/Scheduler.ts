@@ -22,7 +22,6 @@ export default class Scheduler {
   #playQueue = new AudioQueue();
   #player: AudioPlayer;
   #synthseq = 0;
-  #playseq = 0;
   #concurrency = 0;
 
   constructor(player: AudioPlayer) {
