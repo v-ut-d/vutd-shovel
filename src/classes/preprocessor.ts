@@ -18,6 +18,12 @@ const CODEBLOCK_REPLACER = [/```.*?```/gs, 'コードブロック '] as const;
 
 const SPOILER_REPLACER = [/\|\|.*?\|\|/g, ' '] as const;
 
+const MARKDOWN2_REPLACER = [/([*_~`])\1(.+?)\1\1/gs, '$2 '] as const;
+const MARKDOWN1_REPLACER = [/([_`])(.+?)\1/gs, '$2 '] as const;
+const ITALIC_REPLACER = [/\*(.+?)\*/g, '$1 '] as const;
+// eslint-disable-next-line no-irregular-whitespace
+const QUOTE_REPLACER = [/^> (.*[^\s　])$/g, '$1 '] as const;
+
 const GUILD_EMOJI_REPLACER = (dict: Collection<string, string>) =>
   [
     /<:(.+?):(\d{16,19})>/g,
@@ -115,7 +121,11 @@ export default class Preprocessor {
     replaced = replaced
       .replace(...URL_REPLACER)
       .replace(...CODEBLOCK_REPLACER)
-      .replace(...SPOILER_REPLACER);
+      .replace(...SPOILER_REPLACER)
+      .replace(...MARKDOWN2_REPLACER)
+      .replace(...MARKDOWN1_REPLACER)
+      .replace(...ITALIC_REPLACER)
+      .replace(...QUOTE_REPLACER);
     if (this.room.guildSettings?.readEmojis === true) {
       replaced = replaced.replace(...this.#guildEmojiReplacer);
     }
